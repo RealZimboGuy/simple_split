@@ -1,0 +1,583 @@
+{
+	"info": {
+		"_postman_id": "4776e3ea-5dc2-40f8-b1bc-1aea6510138a",
+		"name": "simple_split",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3507534"
+	},
+	"item": [
+		{
+			"name": "User Create",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\":\"julian\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/users/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users",
+						"create"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "user create response",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"julian\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"create"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 22 Nov 2025 08:59:44 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "110"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"name\": \"julian\",\n    \"created_at\": \"2025-11-22T08:59:44.361306Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Group Create",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\":\"Life\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/groups/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"groups",
+						"create"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Create Group Response",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"Life\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/groups/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"groups",
+								"create"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 22 Nov 2025 09:01:42 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "109"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"name\": \"Life\",\n    \"created_at\": \"2025-11-22T09:01:42.500188Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Event Create group",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"event_id\":\"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\" : \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\":\"Life\",\n        \"date_time\":\"2025-11-22T11:53:01\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/events/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events",
+						"create"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Group Create reesponse",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\":\"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\" : \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\":\"Life\",\n        \"date_time\":\"2025-11-22T11:53:01\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/events/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"events",
+								"create"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 22 Nov 2025 09:56:48 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "283"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"event_id\": \"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\": \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\": \"Life\",\n        \"date_time\": \"2025-11-22T11:53:01\"\n    },\n    \"created_at\": \"2025-11-22T09:56:48.998937Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Event Create Expense",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"event_id\":\"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\" : \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\":\"Life\",\n        \"date_time\":\"2025-11-22T11:53:01\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/events/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events",
+						"create"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Group Create reesponse",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\":\"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\" : \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\":\"Life\",\n        \"date_time\":\"2025-11-22T11:53:01\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/events/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"events",
+								"create"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 22 Nov 2025 09:56:48 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "283"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"event_id\": \"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\": \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\": \"Life\",\n        \"date_time\": \"2025-11-22T11:53:01\"\n    },\n    \"created_at\": \"2025-11-22T09:56:48.998937Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Event Group add currency",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"event_id\":\"019aab10-dae7-7bc0-a755-ab36aba5b20a\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\" : \"GROUP_ADD_CURRENCY\",\n    \"payload\": {\n        \"currency\":\"USD\",\n        \"date_time\":\"2025-11-22T12:16:01\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/events/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events",
+						"create"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Group Create reesponse",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\":\"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\" : \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\":\"Life\",\n        \"date_time\":\"2025-11-22T11:53:01\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/events/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"events",
+								"create"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 22 Nov 2025 09:56:48 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "283"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"event_id\": \"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\": \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\": \"Life\",\n        \"date_time\": \"2025-11-22T11:53:01\"\n    },\n    \"created_at\": \"2025-11-22T09:56:48.998937Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Event Group user joined",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"event_id\":\"019aab13-deef-7fcc-b15a-6a816a974cf8\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\" : \"GROUP_USER_JOINED\",\n    \"payload\": {\n        \"name\":\"Julian\",\n        \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n        \"date_time\":\"2025-11-22T12:16:01\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/events/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events",
+						"create"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Group Create reesponse",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\":\"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\" : \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\":\"Life\",\n        \"date_time\":\"2025-11-22T11:53:01\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/events/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"events",
+								"create"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 22 Nov 2025 09:56:48 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "283"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"event_id\": \"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n    \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n    \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n    \"event_type\": \"GROUP_CREATED\",\n    \"payload\": {\n        \"name\": \"Life\",\n        \"date_time\": \"2025-11-22T11:53:01\"\n    },\n    \"created_at\": \"2025-11-22T09:56:48.998937Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Event Get",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/events/by-group?group_id=019aaacc-3ae4-74f1-a017-44f471c8dfcd&after_id=0",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"events",
+						"by-group"
+					],
+					"query": [
+						{
+							"key": "group_id",
+							"value": "019aaacc-3ae4-74f1-a017-44f471c8dfcd"
+						},
+						{
+							"key": "after_id",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Event Create Copy",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/events/by-group?group_id=019aaacc-3ae4-74f1-a017-44f471c8dfcd&after_id=0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"events",
+								"by-group"
+							],
+							"query": [
+								{
+									"key": "group_id",
+									"value": "019aaacc-3ae4-74f1-a017-44f471c8dfcd"
+								},
+								{
+									"key": "after_id",
+									"value": "0"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 22 Nov 2025 10:20:18 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "914"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"event_id\": \"019aaafc-94ac-72ce-ba21-6a68e0c99843\",\n        \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n        \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n        \"event_type\": \"GROUP_CREATED\",\n        \"payload\": {\n            \"name\": \"Life\",\n            \"date_time\": \"2025-11-22T11:53:01\"\n        },\n        \"created_at\": \"2025-11-22T09:56:48.998937Z\"\n    },\n    {\n        \"event_id\": \"019aab10-dae7-7bc0-a755-ab36aba5b20a\",\n        \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n        \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n        \"event_type\": \"GROUP_ADD_CURRENCY\",\n        \"payload\": {\n            \"currency\": \"USD\",\n            \"date_time\": \"2025-11-22T12:16:01\"\n        },\n        \"created_at\": \"2025-11-22T10:16:59.097576Z\"\n    },\n    {\n        \"event_id\": \"019aab13-deef-7fcc-b15a-6a816a974cf8\",\n        \"group_id\": \"019aaacc-3ae4-74f1-a017-44f471c8dfcd\",\n        \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n        \"event_type\": \"GROUP_USER_JOINED\",\n        \"payload\": {\n            \"name\": \"Julian\",\n            \"user_id\": \"019aaaca-6d6d-7f5e-8df0-8d072d006c80\",\n            \"date_time\": \"2025-11-22T12:16:01\"\n        },\n        \"created_at\": \"2025-11-22T10:20:10.461452Z\"\n    }\n]"
+				}
+			]
+		}
+	]
+}
