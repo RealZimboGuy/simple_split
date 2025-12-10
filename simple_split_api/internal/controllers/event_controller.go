@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/RealZimboGuy/budgetApp/internal/domain"
@@ -15,16 +16,16 @@ import (
 
 // EventController handles HTTP requests related to events
 type EventController struct {
-	EventRepo      *repository.EventRepository
-	UserRepo       *repository.UserRepository
-	GroupRepo      *repository.GroupRepository
+	EventRepo       *repository.EventRepository
+	UserRepo        *repository.UserRepository
+	GroupRepo       *repository.GroupRepository
 	FirebaseService *services.FirebaseService
 }
 
 // NewEventController creates a new event controller
 func NewEventController(
-	eventRepo *repository.EventRepository, 
-	userRepo *repository.UserRepository, 
+	eventRepo *repository.EventRepository,
+	userRepo *repository.UserRepository,
 	groupRepo *repository.GroupRepository,
 	firebaseService *services.FirebaseService,
 ) *EventController {
@@ -112,7 +113,7 @@ func (c *EventController) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	err = c.EventRepo.Create(r.Context(), event)
 	if err != nil {
-		log.Printf("Failed to create event: %v", err)
+		slog.ErrorContext(r.Context(), "Failed to create event", "error", err)
 		http.Error(w, "Failed to create event", http.StatusInternalServerError)
 		return
 	}
