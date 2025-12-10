@@ -57,11 +57,13 @@ type FirebaseMessage struct {
 func (s *FirebaseService) SendNotification(ctx context.Context, userID, title, body string, data map[string]string, accessToken string) error {
 	user, err := s.UserRepo.GetByID(ctx, userID)
 	if err != nil {
+		slog.Error("Failed to get user", "error", err)
 		return fmt.Errorf("failed to get user: %w", err)
 	}
 
 	if !user.FirebaseID.Valid || user.FirebaseID.String == "" {
 		// User doesn't have a Firebase token
+		slog.Warn("User doesn't have a Firebase token", "user_id", userID)
 		return fmt.Errorf("user %s doesn't have a Firebase token", userID)
 	}
 
@@ -79,6 +81,8 @@ func (s *FirebaseService) SendNotification(ctx context.Context, userID, title, b
 
 // SendNotificationToMultipleUsers sends a notification to multiple users
 func (s *FirebaseService) SendNotificationToMultipleUsers(ctx context.Context, userIDs []string, title, body string, data map[string]string) {
+
+	slog.Info("Sending notification to multiple users", "user_ids", userIDs)
 
 	err, accessToken := authenticateGoogle()
 
@@ -105,6 +109,7 @@ func (s *FirebaseService) SendNotificationToMultipleUsers(ctx context.Context, u
 
 // sendMessage sends a Firebase message
 func (s *FirebaseService) sendMessage(message FirebaseMessage, token string) error {
+	slog.Info("Sending Firebase message", "message", message)
 	jsonData, err := json.Marshal(message)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)

@@ -118,6 +118,8 @@ func (c *EventController) CreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	slog.InfoContext(r.Context(), "Created event", "event", event)
+
 	// Process ExpenseCreated events for notifications
 	if c.FirebaseService != nil && event.EventType == util.ExpenseCreated {
 		// Parse the expense payload
