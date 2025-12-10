@@ -42,6 +42,9 @@ func NewFirebaseService(userRepo *repository.UserRepository, apiKey string) *Fir
 	}
 }
 
+type FCMRequest struct {
+	Message FirebaseMessage `json:"message"`
+}
 type FirebaseNotification struct {
 	Title string `json:"title"`
 	Body  string `json:"body"`
@@ -109,8 +112,11 @@ func (s *FirebaseService) SendNotificationToMultipleUsers(ctx context.Context, u
 
 // sendMessage sends a Firebase message
 func (s *FirebaseService) sendMessage(message FirebaseMessage, token string) error {
-	slog.Info("Sending Firebase message", "message", message)
-	jsonData, err := json.Marshal(message)
+
+	fcmRequest := FCMRequest{Message: message}
+
+	slog.Info("Sending Firebase message", "message", fcmRequest)
+	jsonData, err := json.Marshal(fcmRequest)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)
 	}
@@ -137,6 +143,9 @@ func (s *FirebaseService) sendMessage(message FirebaseMessage, token string) err
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		//rpint the body if it exists
+		body, _ := ioutil.ReadAll(resp.Body)
+		slog.Error("Failed to send Firebase message", "status", resp.Status, "body", string(body))
 		return fmt.Errorf("bad status: %s", resp.Status)
 	}
 
