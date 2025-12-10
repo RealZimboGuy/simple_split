@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'services/database_service.dart';
 import 'services/firebase_service.dart';
 import 'screens/username_screen.dart';
@@ -22,8 +24,12 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
   
-  // Initialize Firebase for push notifications
+  // Initialize Firebase with default options
   try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    // Initialize Firebase services
     await FirebaseService().initialize();
   } catch (e) {
     debugPrint('Failed to initialize Firebase: $e');

@@ -29,8 +29,7 @@ class FirebaseService {
   }
 
   Future<void> initialize() async {
-    // Initialize Firebase
-    await Firebase.initializeApp();
+    // Firebase.initializeApp() is already called in main.dart
     
     // Configure local notifications
     await _setupLocalNotifications();
