@@ -83,7 +83,7 @@ func (s *FirebaseService) SendNotificationToMultipleUsers(ctx context.Context, u
 	err, accessToken := authenticateGoogle()
 
 	if err != nil {
-		slog.Error("Failed to authenticate with Google", err)
+		slog.Error("Failed to authenticate with Google", "error", err)
 		return
 	}
 
