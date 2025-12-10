@@ -42,6 +42,43 @@ func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 
 // GetByID retrieves a user by ID
 func (r *UserRepository) GetByID(ctx context.Context, userID string) (*domain.User, error) {
+	// Query information schema for users table columns and log the results
+	infoSchemaQuery := `
+		SELECT column_name, data_type, character_maximum_length, column_default, is_nullable
+		FROM information_schema.columns
+		WHERE table_name = 'users'
+		ORDER BY ordinal_position
+	`
+
+	schemaRows, err := r.DB.DB.QueryContext(ctx, infoSchemaQuery)
+	if err != nil {
+		slog.Error("Failed to query information schema", "error", err)
+	} else {
+		defer schemaRows.Close()
+
+		slog.Info("Users table schema information")
+		for schemaRows.Next() {
+			var columnName, dataType, isNullable string
+			var maxLength, columnDefault sql.NullString
+
+			if err := schemaRows.Scan(&columnName, &dataType, &maxLength, &columnDefault, &isNullable); err != nil {
+				slog.Error("Failed to scan information schema row", "error", err)
+				continue
+			}
+
+			slog.Info("Column details",
+				"column_name", columnName,
+				"data_type", dataType,
+				"max_length", maxLength.String,
+				"default", columnDefault.String,
+				"nullable", isNullable)
+		}
+
+		if err := schemaRows.Err(); err != nil {
+			slog.Error("Error iterating information schema rows", "error", err)
+		}
+	}
+
 	query := `
 		SELECT user_id, name, firebase_id, created_at
 		FROM users
@@ -49,7 +86,7 @@ func (r *UserRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 	`
 
 	user := &domain.User{}
-	err := r.DB.DB.QueryRowContext(ctx, query, userID).Scan(
+	err = r.DB.DB.QueryRowContext(ctx, query, userID).Scan(
 		&user.UserID,
 		&user.Name,
 		&user.FirebaseID,
@@ -130,6 +167,43 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 
 // GetByFirebaseID retrieves a user by their Firebase ID
 func (r *UserRepository) GetByFirebaseID(ctx context.Context, firebaseID string) (*domain.User, error) {
+
+	infoSchemaQuery := `
+		SELECT column_name, data_type, character_maximum_length, column_default, is_nullable
+		FROM information_schema.columns
+		WHERE table_name = 'users'
+		ORDER BY ordinal_position
+	`
+
+	schemaRows, err := r.DB.DB.QueryContext(ctx, infoSchemaQuery)
+	if err != nil {
+		slog.Error("Failed to query information schema", "error", err)
+	} else {
+		defer schemaRows.Close()
+
+		slog.Info("Users table schema information")
+		for schemaRows.Next() {
+			var columnName, dataType, isNullable string
+			var maxLength, columnDefault sql.NullString
+
+			if err := schemaRows.Scan(&columnName, &dataType, &maxLength, &columnDefault, &isNullable); err != nil {
+				slog.Error("Failed to scan information schema row", "error", err)
+				continue
+			}
+
+			slog.Info("Column details",
+				"column_name", columnName,
+				"data_type", dataType,
+				"max_length", maxLength.String,
+				"default", columnDefault.String,
+				"nullable", isNullable)
+		}
+
+		if err := schemaRows.Err(); err != nil {
+			slog.Error("Error iterating information schema rows", "error", err)
+		}
+	}
+
 	query := `
 		SELECT user_id, name, firebase_id, created_at
 		FROM users
@@ -137,7 +211,7 @@ func (r *UserRepository) GetByFirebaseID(ctx context.Context, firebaseID string)
 	`
 
 	user := &domain.User{}
-	err := r.DB.DB.QueryRowContext(ctx, query, firebaseID).Scan(
+	err = r.DB.DB.QueryRowContext(ctx, query, firebaseID).Scan(
 		&user.UserID,
 		&user.Name,
 		&user.FirebaseID,
