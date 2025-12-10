@@ -28,12 +28,15 @@ func NewRouter(db *util.Database) *Router {
 	eventRepo := repository.NewEventRepository(db)
 
 	// Get Firebase API key from environment or use a default for development
-	firebaseAPIKey := os.Getenv("FIREBASE_API_KEY")
+	firebaseUrl := os.Getenv("FIREBASE_URL")
 
 	// Create Firebase service if API key is provided
 	var firebaseService *services.FirebaseService
-	if firebaseAPIKey != "" {
-		firebaseService = services.NewFirebaseService(userRepo, firebaseAPIKey)
+	if firebaseUrl != "" {
+		slog.Info("Firebase URL key found, initializing Firebase service")
+		firebaseService = services.NewFirebaseService(userRepo, firebaseUrl)
+	} else {
+		slog.Warn("No Firebase URL key found, notifications will not be sent")
 	}
 
 	// Create controllers
