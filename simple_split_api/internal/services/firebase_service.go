@@ -203,8 +203,7 @@ func (s *FirebaseService) ProcessExpenseCreatedEvent(ctx context.Context, event 
 
 	// Prepare data for the notification
 	title := "New Expense Added"
-	body := fmt.Sprintf("%s - %s - %s", expenseCreated.Description, expenseCreated.Currency, expenseCreated.Total)
-
+	body := fmt.Sprintf("%s - %s - %.2f", expenseCreated.Description, expenseCreated.Currency, expenseCreated.Total)
 	data := map[string]string{
 		"event_id": event.EventID,
 		"group_id": event.GroupID,
