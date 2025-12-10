@@ -160,6 +160,12 @@ func (c *UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 // RegisterFirebaseToken handles registration of a Firebase token for a user
 func (c *UserController) RegisterFirebaseToken(w http.ResponseWriter, r *http.Request) {
+	// Ensure this endpoint only accepts POST requests
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	
 	// Get user ID from URL path
 	userID := r.URL.Query().Get("id")
 	if userID == "" {
