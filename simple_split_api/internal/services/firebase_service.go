@@ -60,13 +60,13 @@ func (s *FirebaseService) SendNotification(ctx context.Context, userID, title, b
 		return fmt.Errorf("failed to get user: %w", err)
 	}
 
-	if user.FirebaseID == "" {
+	if !user.FirebaseID.Valid || user.FirebaseID.String == "" {
 		// User doesn't have a Firebase token
 		return fmt.Errorf("user %s doesn't have a Firebase token", userID)
 	}
 
 	message := FirebaseMessage{
-		Token: user.FirebaseID,
+		Token: user.FirebaseID.String,
 		Notification: FirebaseNotification{
 			Title: title,
 			Body:  body,

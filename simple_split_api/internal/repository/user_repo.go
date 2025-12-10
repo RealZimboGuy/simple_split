@@ -30,6 +30,7 @@ func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 		RETURNING user_id, created_at
 	`
 
+	// FirebaseID is already a sql.NullString, so it will handle NULL values correctly
 	err := r.DB.DB.QueryRowContext(ctx, query, user.Name, user.FirebaseID).Scan(&user.UserID, &user.CreatedAt)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
@@ -107,6 +108,7 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 		WHERE user_id = $3
 	`
 
+	// FirebaseID is already a sql.NullString, so it will handle NULL values correctly
 	result, err := r.DB.DB.ExecContext(ctx, query, user.Name, user.FirebaseID, user.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
@@ -152,13 +154,20 @@ func (r *UserRepository) GetByFirebaseID(ctx context.Context, firebaseID string)
 
 // UpdateFirebaseID updates only a user's Firebase ID
 func (r *UserRepository) UpdateFirebaseID(ctx context.Context, userID string, firebaseID string) error {
+	var firebaseNullString sql.NullString
+	if firebaseID != "" {
+		firebaseNullString = sql.NullString{String: firebaseID, Valid: true}
+	} else {
+		firebaseNullString = sql.NullString{Valid: false}
+	}
+
 	query := `
 		UPDATE users
 		SET firebase_id = $1
 		WHERE user_id = $2
 	`
 
-	result, err := r.DB.DB.ExecContext(ctx, query, firebaseID, userID)
+	result, err := r.DB.DB.ExecContext(ctx, query, firebaseNullString, userID)
 	if err != nil {
 		return fmt.Errorf("failed to update firebase ID: %w", err)
 	}

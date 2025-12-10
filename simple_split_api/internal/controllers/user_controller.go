@@ -186,12 +186,6 @@ func (c *UserController) RegisterFirebaseToken(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Validate request
-	if reqBody.Token == "" {
-		http.Error(w, "Token is required", http.StatusBadRequest)
-		return
-	}
-
 	// Check if user exists
 	_, err = c.UserRepo.GetByID(r.Context(), userID)
 	if err != nil {
@@ -200,7 +194,7 @@ func (c *UserController) RegisterFirebaseToken(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Update user's Firebase token
+	// Update user's Firebase token (can be empty to unset/remove token)
 	err = c.UserRepo.UpdateFirebaseID(r.Context(), userID, reqBody.Token)
 	if err != nil {
 		log.Printf("Failed to update Firebase token: %v", err)
