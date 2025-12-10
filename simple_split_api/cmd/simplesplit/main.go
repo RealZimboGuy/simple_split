@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -46,7 +47,7 @@ func main() {
 		log.Fatalf("Failed to ping database: %v", err)
 	}
 
-	log.Println("Connected to database")
+	log.Println(fmt.Sprintf("Connected to database: %s", dbURL))
 
 	// Create database wrapper
 	database := util.NewDatabase(db)
