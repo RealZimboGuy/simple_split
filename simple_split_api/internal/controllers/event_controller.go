@@ -131,6 +131,8 @@ func (c *EventController) CreateEvent(w http.ResponseWriter, r *http.Request) {
 				}
 			}()
 		}
+	} else {
+		slog.InfoContext(r.Context(), "Not processing ExpenseCreated event as FirebaseService is nil")
 	}
 
 	// Return created event
