@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/RealZimboGuy/budgetApp/internal/domain"
 	"github.com/RealZimboGuy/budgetApp/internal/util"
@@ -56,6 +57,7 @@ func (r *UserRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 	)
 
 	if err != nil {
+		slog.Error("Error in getting User", err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("user not found: %s", userID)
 		}
