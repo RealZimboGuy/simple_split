@@ -57,7 +57,7 @@ func (r *UserRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 	)
 
 	if err != nil {
-		slog.Error("Error in getting User", err)
+		slog.Error("Error in getting User", "error", err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("user not found: %s", userID)
 		}
