@@ -6,9 +6,10 @@ import (
 
 // User represents a user in the system
 type User struct {
-	UserID    string    `json:"user_id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
+	UserID      string    `json:"user_id"`
+	Name        string    `json:"name"`
+	FirebaseID  string    `json:"firebase_id,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 // NewUser creates a new user with the given name

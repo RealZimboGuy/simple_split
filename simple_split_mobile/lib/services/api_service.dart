@@ -181,4 +181,23 @@ Future<User> getUser(String id) async {
   String generateUuidV7() {
     return uuid.v7();
   }
+
+  // Firebase token registration
+  Future<bool> registerFirebaseToken(String userId, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/firebase/$userId'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'token': token}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Failed to register token: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to register token: ${e.toString()}');
+    }
+  }
 }

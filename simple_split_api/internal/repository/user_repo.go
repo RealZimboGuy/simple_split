@@ -25,12 +25,12 @@ func NewUserRepository(db *util.Database) *UserRepository {
 // Create adds a new user to the database
 func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 	query := `
-		INSERT INTO users (name)
-		VALUES ($1)
+		INSERT INTO users (name, firebase_id)
+		VALUES ($1, $2)
 		RETURNING user_id, created_at
 	`
 
-	err := r.DB.DB.QueryRowContext(ctx, query, user.Name).Scan(&user.UserID, &user.CreatedAt)
+	err := r.DB.DB.QueryRowContext(ctx, query, user.Name, user.FirebaseID).Scan(&user.UserID, &user.CreatedAt)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
@@ -41,7 +41,7 @@ func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 // GetByID retrieves a user by ID
 func (r *UserRepository) GetByID(ctx context.Context, userID string) (*domain.User, error) {
 	query := `
-		SELECT user_id, name, created_at
+		SELECT user_id, name, firebase_id, created_at
 		FROM users
 		WHERE user_id = $1
 	`
@@ -50,6 +50,7 @@ func (r *UserRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 	err := r.DB.DB.QueryRowContext(ctx, query, userID).Scan(
 		&user.UserID,
 		&user.Name,
+		&user.FirebaseID,
 		&user.CreatedAt,
 	)
 
@@ -66,7 +67,7 @@ func (r *UserRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 // GetAll retrieves all users
 func (r *UserRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 	query := `
-		SELECT user_id, name, created_at
+		SELECT user_id, name, firebase_id, created_at
 		FROM users
 		ORDER BY created_at DESC
 	`
@@ -83,6 +84,7 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 		if err := rows.Scan(
 			&user.UserID,
 			&user.Name,
+			&user.FirebaseID,
 			&user.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan user row: %w", err)
@@ -101,11 +103,11 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 	query := `
 		UPDATE users
-		SET name = $1
-		WHERE user_id = $2
+		SET name = $1, firebase_id = $2
+		WHERE user_id = $3
 	`
 
-	result, err := r.DB.DB.ExecContext(ctx, query, user.Name, user.UserID)
+	result, err := r.DB.DB.ExecContext(ctx, query, user.Name, user.FirebaseID, user.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
@@ -117,6 +119,57 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 
 	if rowsAffected == 0 {
 		return fmt.Errorf("user not found: %s", user.UserID)
+	}
+
+	return nil
+}
+
+// GetByFirebaseID retrieves a user by their Firebase ID
+func (r *UserRepository) GetByFirebaseID(ctx context.Context, firebaseID string) (*domain.User, error) {
+	query := `
+		SELECT user_id, name, firebase_id, created_at
+		FROM users
+		WHERE firebase_id = $1
+	`
+
+	user := &domain.User{}
+	err := r.DB.DB.QueryRowContext(ctx, query, firebaseID).Scan(
+		&user.UserID,
+		&user.Name,
+		&user.FirebaseID,
+		&user.CreatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("user with firebase ID not found: %s", firebaseID)
+		}
+		return nil, fmt.Errorf("failed to get user by firebase ID: %w", err)
+	}
+
+	return user, nil
+}
+
+// UpdateFirebaseID updates only a user's Firebase ID
+func (r *UserRepository) UpdateFirebaseID(ctx context.Context, userID string, firebaseID string) error {
+	query := `
+		UPDATE users
+		SET firebase_id = $1
+		WHERE user_id = $2
+	`
+
+	result, err := r.DB.DB.ExecContext(ctx, query, firebaseID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update firebase ID: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("user not found: %s", userID)
 	}
 
 	return nil
