@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/RealZimboGuy/budgetApp/internal/domain"
@@ -165,7 +167,7 @@ func (c *UserController) RegisterFirebaseToken(w http.ResponseWriter, r *http.Re
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	
+
 	// Get user ID from URL path
 	userID := r.URL.Query().Get("id")
 	if userID == "" {
@@ -193,6 +195,7 @@ func (c *UserController) RegisterFirebaseToken(w http.ResponseWriter, r *http.Re
 	// Check if user exists
 	_, err = c.UserRepo.GetByID(r.Context(), userID)
 	if err != nil {
+		slog.ErrorContext(r.Context(), fmt.Sprintf("User not found: %s", userID))
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
