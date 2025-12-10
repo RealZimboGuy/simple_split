@@ -1,4 +1,4 @@
-package domain
+package events
 
 type PaidBy struct {
 	UserID string  `json:"user_id"`

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/RealZimboGuy/budgetApp/internal/domain"
+	"github.com/RealZimboGuy/budgetApp/internal/models/events"
 	"github.com/RealZimboGuy/budgetApp/internal/repository"
 )
 
@@ -155,6 +156,11 @@ func (s *FirebaseService) sendMessage(message FirebaseMessage, token string) err
 // ProcessExpenseCreatedEvent sends notifications for an ExpenseCreated event
 func (s *FirebaseService) ProcessExpenseCreatedEvent(ctx context.Context, event *domain.Event, expense interface{}) error {
 	// Extract PaidBy and PaidFor user IDs
+
+	//parse out the event payload to ExpenseCreated
+	var expenseCreated events.ExpenseCreated
+	json.Unmarshal(event.Payload, &expenseCreated)
+
 	expenseData, ok := expense.(map[string]interface{})
 	if !ok {
 		return fmt.Errorf("invalid expense data format")
@@ -195,15 +201,9 @@ func (s *FirebaseService) ProcessExpenseCreatedEvent(ctx context.Context, event 
 		}
 	}
 
-	// Get expense description
-	description := "New expense"
-	if desc, ok := expenseData["description"].(string); ok {
-		description = desc
-	}
-
 	// Prepare data for the notification
 	title := "New Expense Added"
-	body := fmt.Sprintf("%s - %s", description, event.GroupID)
+	body := fmt.Sprintf("%s - %s - %s", expenseCreated.Description, expenseCreated.Currency, expenseCreated.Total)
 
 	data := map[string]string{
 		"event_id": event.EventID,
