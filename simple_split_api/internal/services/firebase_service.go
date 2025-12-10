@@ -119,6 +119,7 @@ func (s *FirebaseService) sendMessage(message FirebaseMessage, token string) err
 	if firebaseUrl == "" {
 		return fmt.Errorf("FIREBASE_URL environment variable is not set")
 	}
+	slog.Info("Sending Firebase message", "firebase_url", firebaseUrl)
 
 	req, err := http.NewRequest("POST", firebaseUrl, bytes.NewBuffer(jsonData))
 	if err != nil {
