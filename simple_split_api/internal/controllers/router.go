@@ -29,7 +29,7 @@ func NewRouter(db *util.Database) *Router {
 
 	// Get Firebase API key from environment or use a default for development
 	firebaseAPIKey := os.Getenv("FIREBASE_API_KEY")
-	
+
 	// Create Firebase service if API key is provided
 	var firebaseService *services.FirebaseService
 	if firebaseAPIKey != "" {
@@ -65,14 +65,7 @@ func (r *Router) SetupRoutes() http.Handler {
 	// fix: use Handle because Chain returns http.Handler
 	r.mux.Handle("/api/users/create", Chain(http.HandlerFunc(r.UserController.CreateUser), config.LoggingMiddleware, PanicRecoveryMiddleware))
 	r.mux.Handle("/api/users/get", Chain(http.HandlerFunc(r.UserController.GetUser), config.LoggingMiddleware, PanicRecoveryMiddleware))
-	r.mux.Handle("/api/users/firebase/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if req.URL.Path == "/api/users/firebase/" {
-			http.Error(w, "User ID is required", http.StatusBadRequest)
-			return
-		}
-		r.UserController.RegisterFirebaseToken(w, req)
-	}))
-
+	r.mux.Handle("/api/users/firebase", Chain(http.HandlerFunc(r.UserController.RegisterFirebaseToken), config.LoggingMiddleware, PanicRecoveryMiddleware))
 	// Group routes
 	r.mux.Handle("/api/groups/create", Chain(http.HandlerFunc(r.GroupController.CreateGroup), config.LoggingMiddleware, PanicRecoveryMiddleware))
 	r.mux.Handle("/api/groups/get", Chain(http.HandlerFunc(r.GroupController.GetGroup), config.LoggingMiddleware, PanicRecoveryMiddleware))

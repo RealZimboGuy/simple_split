@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/RealZimboGuy/budgetApp/internal/domain"
 	"github.com/RealZimboGuy/budgetApp/internal/repository"
@@ -162,12 +161,7 @@ func (c *UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 // RegisterFirebaseToken handles registration of a Firebase token for a user
 func (c *UserController) RegisterFirebaseToken(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from URL path
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
-		http.Error(w, "Invalid URL format", http.StatusBadRequest)
-		return
-	}
-	userID := pathParts[len(pathParts)-1]
+	userID := r.URL.Query().Get("id")
 	if userID == "" {
 		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
