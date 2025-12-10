@@ -50,7 +50,7 @@ type FirebaseNotification struct {
 type FirebaseMessage struct {
 	Token        string               `json:"token"`
 	Notification FirebaseNotification `json:"notification"`
-	Data         map[string]string    `json:"data,omitempty"`
+	//Data         map[string]string    `json:"data,omitempty"`
 }
 
 // SendNotification sends a notification to a specific user
@@ -73,7 +73,7 @@ func (s *FirebaseService) SendNotification(ctx context.Context, userID, title, b
 			Title: title,
 			Body:  body,
 		},
-		Data: data,
+		//Data: data,
 	}
 
 	return s.sendMessage(message, accessToken)
