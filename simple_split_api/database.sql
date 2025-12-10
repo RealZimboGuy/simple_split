@@ -23,3 +23,11 @@ CREATE TABLE events (
 );
 
 CREATE INDEX idx_events_group_eventid ON events(group_id, event_id);
+
+
+-- Add firebase_id column to users table
+ALTER TABLE users ADD COLUMN firebase_id TEXT DEFAULT NULL;
+
+-- Create an index on firebase_id for faster lookups
+CREATE INDEX idx_users_firebase_id ON users(firebase_id);
+

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'services/database_service.dart';
+import 'services/firebase_service.dart';
 import 'screens/username_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/group_selection_screen.dart';
@@ -19,6 +20,13 @@ void main() async {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+  }
+  
+  // Initialize Firebase for push notifications
+  try {
+    await FirebaseService().initialize();
+  } catch (e) {
+    debugPrint('Failed to initialize Firebase: $e');
   }
   
   runApp(const MyApp());

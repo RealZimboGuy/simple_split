@@ -3,10 +3,12 @@ package controllers
 import (
 	"log/slog"
 	"net/http"
+	"os"
 	"runtime/debug"
 
 	"github.com/RealZimboGuy/budgetApp/internal/config"
 	"github.com/RealZimboGuy/budgetApp/internal/repository"
+	"github.com/RealZimboGuy/budgetApp/internal/services"
 	"github.com/RealZimboGuy/budgetApp/internal/util"
 )
 
@@ -25,10 +27,19 @@ func NewRouter(db *util.Database) *Router {
 	groupRepo := repository.NewGroupRepository(db)
 	eventRepo := repository.NewEventRepository(db)
 
+	// Get Firebase API key from environment or use a default for development
+	firebaseAPIKey := os.Getenv("FIREBASE_API_KEY")
+	
+	// Create Firebase service if API key is provided
+	var firebaseService *services.FirebaseService
+	if firebaseAPIKey != "" {
+		firebaseService = services.NewFirebaseService(userRepo, firebaseAPIKey)
+	}
+
 	// Create controllers
 	userController := NewUserController(userRepo)
 	groupController := NewGroupController(groupRepo)
-	eventController := NewEventController(eventRepo, userRepo, groupRepo)
+	eventController := NewEventController(eventRepo, userRepo, groupRepo, firebaseService)
 
 	return &Router{
 		UserController:  userController,
@@ -54,6 +65,13 @@ func (r *Router) SetupRoutes() http.Handler {
 	// fix: use Handle because Chain returns http.Handler
 	r.mux.Handle("/api/users/create", Chain(http.HandlerFunc(r.UserController.CreateUser), config.LoggingMiddleware, PanicRecoveryMiddleware))
 	r.mux.Handle("/api/users/get", Chain(http.HandlerFunc(r.UserController.GetUser), config.LoggingMiddleware, PanicRecoveryMiddleware))
+	r.mux.Handle("/api/users/firebase/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.URL.Path == "/api/users/firebase/" {
+			http.Error(w, "User ID is required", http.StatusBadRequest)
+			return
+		}
+		r.UserController.RegisterFirebaseToken(w, req)
+	}))
 
 	// Group routes
 	r.mux.Handle("/api/groups/create", Chain(http.HandlerFunc(r.GroupController.CreateGroup), config.LoggingMiddleware, PanicRecoveryMiddleware))
