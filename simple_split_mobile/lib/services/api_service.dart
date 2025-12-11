@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
@@ -185,8 +186,14 @@ Future<User> getUser(String id) async {
   // Firebase token registration
   Future<bool> registerFirebaseToken(String userId, String token) async {
     try {
+      final uri = Uri.parse('$baseUrl/users/firebase')
+          .replace(queryParameters: {'id': userId});
+
+      // Log the URL *before* calling API
+      log('POST $uri', name: 'registerFirebaseToken');
+
       final response = await http.post(
-        Uri.parse('$baseUrl/users/firebase/$userId'),
+        uri,
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'token': token}),
       );

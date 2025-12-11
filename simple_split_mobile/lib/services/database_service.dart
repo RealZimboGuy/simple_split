@@ -171,13 +171,6 @@ class DatabaseService {
     return User.fromMap(maps.first);
   }
 
-  Future<User?> getCurrentUser() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('users');
-
-    if (maps.isEmpty) return null;
-    return User.fromMap(maps.first); // Assuming there's only one user for now
-  }
 
   // Group operations
   Future<void> saveGroup(Group group) async {

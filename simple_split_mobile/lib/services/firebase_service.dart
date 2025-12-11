@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../models/setting.dart';
 import 'api_service.dart';
 import 'database_service.dart';
 
@@ -107,11 +108,11 @@ class FirebaseService {
     try {
       final apiService = ApiService();
       final dbService = DatabaseService();
-      final user = await dbService.getCurrentUser();
-      
+      final user = await dbService.getSetting(Setting.userId);
+
       if (user != null) {
-        await apiService.registerFirebaseToken(user.userId, token);
-        debugPrint('Token registered with server for user ${user.userId}');
+        await apiService.registerFirebaseToken(user.settingValue, token);
+        debugPrint('Token registered with server for user ${user.settingValue}');
       } else {
         debugPrint('Cannot register token: No current user');
       }

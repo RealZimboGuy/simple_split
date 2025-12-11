@@ -5,6 +5,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'models/setting.dart';
+import 'models/user.dart';
 import 'services/database_service.dart';
 import 'services/firebase_service.dart';
 import 'screens/username_screen.dart';
@@ -76,9 +78,32 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Check if user exists in database
     final dbService = DatabaseService();
-    final user = await dbService.getCurrentUser();
 
-    if (user != null) {
+    String? userId;
+    try {
+      // Get user ID from settings
+      final userIdSetting = await dbService.getSetting(Setting.userId);
+      userId = userIdSetting.settingValue;
+    } catch (e) {
+      debugPrint('Failed to get user ID: $e');
+    }
+    
+    if (userId != null) {
+      // Get the user object
+      final user = await dbService.getUser(userId);
+      
+      if (user == null) {
+        // User ID found but user object not found
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const UsernameScreen(),
+            ),
+          );
+        }
+        return;
+      }
+      
       // User exists, get their groups
       final groups = await dbService.getGroups();
 
