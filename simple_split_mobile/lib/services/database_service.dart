@@ -352,6 +352,18 @@ class DatabaseService {
     );
   }
 
+  // Delete a group and all its associated data (events, user_groups)
+  Future<void> deleteGroup(String groupId) async {
+    final db = await database;
+    await db.delete(
+      'groups',
+      where: 'group_id = ?',
+      whereArgs: [groupId],
+    );
+    // Note: ON DELETE CASCADE in the schema will automatically
+    // delete related records in user_groups and events tables
+  }
+
   // Delete database (useful for testing or resetting)
   Future<void> deleteDatabase() async {
     String path = join(await getDatabasesPath(), 'simple_split.db');

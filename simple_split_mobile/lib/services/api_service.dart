@@ -20,7 +20,7 @@ class ApiService {
   }
 
   ApiService._internal() {
-    baseUrl = dotenv.env['API_BASE_URL'] ?? 'https://simple-split-api-106581424606.europe-west1.run.app/api';
+    baseUrl = dotenv.env['API_BASE_URL'] ?? 'https://localhost.europe-west1.run.app/api';
   }
 
   void _updateBaseUrl(String newBaseUrl) {

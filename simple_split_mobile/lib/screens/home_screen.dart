@@ -430,6 +430,68 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     });
   }
+  
+  void _showLeaveGroupConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Leave Group'),
+          content: const Text('Are you sure you want to leave this group? This will delete the group data from your device.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                _leaveGroup();
+              },
+              child: const Text('Leave'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  void _leaveGroup() async {
+    final currentGroupId = _currentGroup.groupId;
+    
+    // Delete the current group from the database
+    await DatabaseService().deleteGroup(currentGroupId);
+    
+    // Get remaining groups
+    final groups = await DatabaseService().getGroups();
+    
+    if (groups.isEmpty) {
+      // No groups left, navigate to group creation screen
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => GroupSelectionScreen(user: widget.user)),
+        (route) => false, // Remove all previous routes
+      );
+    } else {
+      // Update current group to first available group
+      setState(() {
+        _currentGroup = groups.first;
+      });
+      
+      // Recalculate projections for the new current group
+      await _projectionService.reCalculateGroupProjections(_currentGroup.groupId);
+      
+      // Refresh UI
+      setState(() {});
+      
+      // Show confirmation
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Successfully left the group')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -447,6 +509,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 _navigateToAddCurrencyScreen();
               } else if (value == 'copy_group_id') {
                 _copyGroupId();
+              } else if (value == 'leave_group') {
+                _showLeaveGroupConfirmation();
               }
             },
             itemBuilder: (BuildContext context) => [
@@ -457,6 +521,10 @@ class _HomeScreenState extends State<HomeScreen> {
               const PopupMenuItem<String>(
                 value: 'copy_group_id',
                 child: Text('Copy Group ID'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'leave_group',
+                child: Text('Leave Group'),
               ),
             ],
           ),
