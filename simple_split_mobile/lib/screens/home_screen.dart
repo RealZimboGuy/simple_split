@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Group> _userGroups = [];
   bool _isSyncing = false;
   final uuid = Uuid();
+  String? _selectedCurrency;
 
   // Show confirmation dialog before deleting an expense
   void _showDeleteConfirmation(Event event) {
@@ -377,6 +378,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _changeGroup(Group group) {
     setState(() {
       _currentGroup = group;
+      // Reset currency filter when changing groups
+      _selectedCurrency = null;
     });
     
     // Close drawer immediately
@@ -407,8 +410,10 @@ class _HomeScreenState extends State<HomeScreen> {
       // Refresh the screen if currency was added
       if (value == true) {
         // Projection has already been recalculated
-        // Simply trigger a UI refresh to show new data
-        setState(() {});
+        // Reset currency filter and trigger UI refresh to show new data
+        setState(() {
+          _selectedCurrency = null;
+        });
         
         // Then sync in background without blocking UI
         Future.microtask(() {
@@ -688,12 +693,39 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               
-              // Expenses list header
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text(
-                  'Expenses',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              // Expenses list header with currency filter
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Expenses',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    if (projection.currencies.isNotEmpty)
+                      DropdownButton<String>(
+                        value: _selectedCurrency,
+                        hint: const Text('Filter by currency'),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedCurrency = newValue;
+                          });
+                        },
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: null,
+                            child: Text('All currencies'),
+                          ),
+                          ...projection.currencies.map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        ],
+                      ),
+                  ],
                 ),
               ),
               
@@ -706,13 +738,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 )
               else
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Column(
-                    children: expenseEvents.map((event) {
-                      return _buildExpenseCard(event, projection);
-                    }).toList(),
-                  ),
+                Builder(
+                  builder: (context) {
+                    // Filter expenses based on selected currency
+                    final filteredExpenses = expenseEvents
+                        .where((event) {
+                          // If no currency is selected, show all expenses
+                          if (_selectedCurrency == null) return true;
+                          
+                          // Filter expenses by the selected currency
+                          final expense = Expense.fromJson(event.payload);
+                          return expense.currency == _selectedCurrency;
+                        })
+                        .toList();
+                        
+                    // Check if we have any expenses after filtering
+                    if (filteredExpenses.isEmpty && _selectedCurrency != null) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Center(
+                          child: Text('No expenses found for ${_selectedCurrency} currency.'),
+                        ),
+                      );
+                    }
+                    
+                    // Display the filtered expenses
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Column(
+                        children: filteredExpenses
+                            .map((event) {
+                              return _buildExpenseCard(event, projection);
+                            })
+                            .toList(),
+                      ),
+                    );
+                  },
                 ),
               
               // Add some padding at the bottom to ensure the FAB doesn't obscure content
