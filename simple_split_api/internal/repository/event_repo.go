@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/RealZimboGuy/budgetApp/internal/domain"
 	"github.com/RealZimboGuy/budgetApp/internal/util"
@@ -49,6 +50,7 @@ func (r *EventRepository) Create(ctx context.Context, event *domain.Event) error
 		).Scan(&event.EventID, &event.CreatedAt)
 
 		if err != nil {
+			slog.Error("Error in creating Event", "error", err)
 			return fmt.Errorf("failed to create event: %w", err)
 		}
 	} else {
@@ -72,6 +74,7 @@ func (r *EventRepository) Create(ctx context.Context, event *domain.Event) error
 		).Scan(&event.CreatedAt)
 
 		if err != nil {
+			slog.Error("Error in creating Event", "error", err)
 			return fmt.Errorf("failed to create event: %w", err)
 		}
 	}

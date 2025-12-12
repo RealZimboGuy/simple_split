@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/RealZimboGuy/budgetApp/internal/domain"
@@ -156,4 +158,51 @@ func (c *UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// Return success
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"message":"User deleted successfully"}`))
+}
+
+// RegisterFirebaseToken handles registration of a Firebase token for a user
+func (c *UserController) RegisterFirebaseToken(w http.ResponseWriter, r *http.Request) {
+	// Ensure this endpoint only accepts POST requests
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get user ID from URL path
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Parse request body
+	var reqBody struct {
+		Token string `json:"token"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&reqBody)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Check if user exists
+	_, err = c.UserRepo.GetByID(r.Context(), userID)
+	if err != nil {
+		slog.ErrorContext(r.Context(), fmt.Sprintf("User not found: %s", userID))
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Update user's Firebase token (can be empty to unset/remove token)
+	err = c.UserRepo.UpdateFirebaseID(r.Context(), userID, reqBody.Token)
+	if err != nil {
+		log.Printf("Failed to update Firebase token: %v", err)
+		http.Error(w, "Failed to update Firebase token", http.StatusInternalServerError)
+		return
+	}
+
+	// Return success
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message":"Firebase token registered successfully"}`))
 }

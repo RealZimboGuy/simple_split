@@ -3,10 +3,12 @@ package controllers
 import (
 	"log/slog"
 	"net/http"
+	"os"
 	"runtime/debug"
 
 	"github.com/RealZimboGuy/budgetApp/internal/config"
 	"github.com/RealZimboGuy/budgetApp/internal/repository"
+	"github.com/RealZimboGuy/budgetApp/internal/services"
 	"github.com/RealZimboGuy/budgetApp/internal/util"
 )
 
@@ -25,10 +27,22 @@ func NewRouter(db *util.Database) *Router {
 	groupRepo := repository.NewGroupRepository(db)
 	eventRepo := repository.NewEventRepository(db)
 
+	// Get Firebase API key from environment or use a default for development
+	firebaseUrl := os.Getenv("FIREBASE_URL")
+
+	// Create Firebase service if API key is provided
+	var firebaseService *services.FirebaseService
+	if firebaseUrl != "" {
+		slog.Info("Firebase URL key found, initializing Firebase service")
+		firebaseService = services.NewFirebaseService(userRepo, firebaseUrl)
+	} else {
+		slog.Warn("No Firebase URL key found, notifications will not be sent")
+	}
+
 	// Create controllers
 	userController := NewUserController(userRepo)
 	groupController := NewGroupController(groupRepo)
-	eventController := NewEventController(eventRepo, userRepo, groupRepo)
+	eventController := NewEventController(eventRepo, userRepo, groupRepo, firebaseService)
 
 	return &Router{
 		UserController:  userController,
@@ -54,7 +68,7 @@ func (r *Router) SetupRoutes() http.Handler {
 	// fix: use Handle because Chain returns http.Handler
 	r.mux.Handle("/api/users/create", Chain(http.HandlerFunc(r.UserController.CreateUser), config.LoggingMiddleware, PanicRecoveryMiddleware))
 	r.mux.Handle("/api/users/get", Chain(http.HandlerFunc(r.UserController.GetUser), config.LoggingMiddleware, PanicRecoveryMiddleware))
-
+	r.mux.Handle("/api/users/firebase", Chain(http.HandlerFunc(r.UserController.RegisterFirebaseToken), config.LoggingMiddleware, PanicRecoveryMiddleware))
 	// Group routes
 	r.mux.Handle("/api/groups/create", Chain(http.HandlerFunc(r.GroupController.CreateGroup), config.LoggingMiddleware, PanicRecoveryMiddleware))
 	r.mux.Handle("/api/groups/get", Chain(http.HandlerFunc(r.GroupController.GetGroup), config.LoggingMiddleware, PanicRecoveryMiddleware))

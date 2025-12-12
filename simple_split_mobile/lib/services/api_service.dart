@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
@@ -19,7 +20,7 @@ class ApiService {
   }
 
   ApiService._internal() {
-    baseUrl = dotenv.env['API_BASE_URL'] ?? 'https://simple-split-api-106581424606.europe-west1.run.app/api';
+    baseUrl = dotenv.env['API_BASE_URL'] ?? 'https://localhost.europe-west1.run.app/api';
   }
 
   void _updateBaseUrl(String newBaseUrl) {
@@ -180,5 +181,30 @@ Future<User> getUser(String id) async {
   // Helper method to create a UUID v7 (compatible with server)
   String generateUuidV7() {
     return uuid.v7();
+  }
+
+  // Firebase token registration
+  Future<bool> registerFirebaseToken(String userId, String token) async {
+    try {
+      final uri = Uri.parse('$baseUrl/users/firebase')
+          .replace(queryParameters: {'id': userId});
+
+      // Log the URL *before* calling API
+      log('POST $uri', name: 'registerFirebaseToken');
+
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'token': token}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Failed to register token: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to register token: ${e.toString()}');
+    }
   }
 }

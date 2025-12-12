@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -10,8 +11,8 @@ import (
 
 	"github.com/RealZimboGuy/budgetApp/internal/controllers"
 	"github.com/RealZimboGuy/budgetApp/internal/util"
-	// Import postgres driver in a real application
-	_ "github.com/lib/pq"
+	// Import postgres driver
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type googleHandler struct {
@@ -35,7 +36,8 @@ func main() {
 	}
 
 	// Connect to database
-	db, err := sql.Open("postgres", dbURL)
+	db, err := sql.Open("pgx", dbURL)
+
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -46,7 +48,7 @@ func main() {
 		log.Fatalf("Failed to ping database: %v", err)
 	}
 
-	log.Println("Connected to database")
+	log.Println(fmt.Sprintf("Connected to database: %s", dbURL))
 
 	// Create database wrapper
 	database := util.NewDatabase(db)

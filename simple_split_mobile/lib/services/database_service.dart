@@ -171,13 +171,6 @@ class DatabaseService {
     return User.fromMap(maps.first);
   }
 
-  Future<User?> getCurrentUser() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('users');
-
-    if (maps.isEmpty) return null;
-    return User.fromMap(maps.first); // Assuming there's only one user for now
-  }
 
   // Group operations
   Future<void> saveGroup(Group group) async {
@@ -357,6 +350,18 @@ class DatabaseService {
       where: 'event_id = ?',
       whereArgs: [eventId],
     );
+  }
+
+  // Delete a group and all its associated data (events, user_groups)
+  Future<void> deleteGroup(String groupId) async {
+    final db = await database;
+    await db.delete(
+      'groups',
+      where: 'group_id = ?',
+      whereArgs: [groupId],
+    );
+    // Note: ON DELETE CASCADE in the schema will automatically
+    // delete related records in user_groups and events tables
   }
 
   // Delete database (useful for testing or resetting)

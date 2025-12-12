@@ -1,29 +1,39 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/RealZimboGuy/budgetApp/internal/domain"
 	"github.com/RealZimboGuy/budgetApp/internal/repository"
+	"github.com/RealZimboGuy/budgetApp/internal/services"
 	"github.com/RealZimboGuy/budgetApp/internal/util"
 )
 
 // EventController handles HTTP requests related to events
 type EventController struct {
-	EventRepo *repository.EventRepository
-	UserRepo  *repository.UserRepository
-	GroupRepo *repository.GroupRepository
+	EventRepo       *repository.EventRepository
+	UserRepo        *repository.UserRepository
+	GroupRepo       *repository.GroupRepository
+	FirebaseService *services.FirebaseService
 }
 
 // NewEventController creates a new event controller
-func NewEventController(eventRepo *repository.EventRepository, userRepo *repository.UserRepository, groupRepo *repository.GroupRepository) *EventController {
+func NewEventController(
+	eventRepo *repository.EventRepository,
+	userRepo *repository.UserRepository,
+	groupRepo *repository.GroupRepository,
+	firebaseService *services.FirebaseService,
+) *EventController {
 	return &EventController{
-		EventRepo: eventRepo,
-		UserRepo:  userRepo,
-		GroupRepo: groupRepo,
+		EventRepo:       eventRepo,
+		UserRepo:        userRepo,
+		GroupRepo:       groupRepo,
+		FirebaseService: firebaseService,
 	}
 }
 
@@ -103,9 +113,28 @@ func (c *EventController) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	err = c.EventRepo.Create(r.Context(), event)
 	if err != nil {
-		log.Printf("Failed to create event: %v", err)
+		slog.ErrorContext(r.Context(), "Failed to create event", "error", err)
 		http.Error(w, "Failed to create event", http.StatusInternalServerError)
 		return
+	}
+
+	slog.InfoContext(r.Context(), "Created event", "event", event)
+
+	// Process ExpenseCreated events for notifications
+	if c.FirebaseService != nil && event.EventType == util.ExpenseCreated {
+		// Parse the expense payload
+		var expense map[string]interface{}
+		if err := json.Unmarshal(event.Payload, &expense); err == nil {
+			// Process in a goroutine to not block the response
+			go func() {
+				err := c.FirebaseService.ProcessExpenseCreatedEvent(context.Background(), event, expense)
+				if err != nil {
+					log.Printf("Failed to process ExpenseCreated notification: %v", err)
+				}
+			}()
+		}
+	} else {
+		slog.InfoContext(r.Context(), "Not processing ExpenseCreated event as FirebaseService is nil")
 	}
 
 	// Return created event
