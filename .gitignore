@@ -6,3 +6,5 @@ simple_split_mobile/upload-keystore.jks
 .DS_Store
 
 simple_split_mobile/android/app/google-services.json
+
+simple_split_mobile/.env.prod

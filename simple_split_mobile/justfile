@@ -1,0 +1,12 @@
+# justfile
+
+VERSION := "1.2.2+5"
+
+aab:
+  just update-version
+  flutter clean
+  flutter build appbundle --release
+
+update-version:
+  # This replaces the version in pubspec.yaml with the VERSION variable
+  sed -i '' 's/^version: .*/version: {{VERSION}}/' pubspec.yaml

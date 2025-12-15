@@ -181,14 +181,29 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> with SingleTickerPr
       final selectedUserCount = _selectedUsers.values.where((selected) => selected).length;
       final double amountPerUser = selectedUserCount > 0 ? totalAmount / selectedUserCount : 0.0;
       
+      // Round to two decimal places
+      final double roundedAmountPerUser = (amountPerUser * 100).floor() / 100;
+      
       // Create paid for objects (who's splitting the expense evenly)
       paidFor = _selectedUsers.entries
           .where((entry) => entry.value) // Only include selected users
           .map((entry) => PaidFor(
                 userId: entry.key,
-                amount: amountPerUser.toDouble(),
+                amount: roundedAmountPerUser,
               ))
           .toList();
+      
+      // Check if rounding caused a difference and adjust one share if needed
+      final double sumOfShares = paidFor.fold(0.0, (sum, pf) => sum + pf.amount);
+      final double difference = totalAmount - sumOfShares;
+      
+      // If there's a difference due to rounding, adjust the first share
+      if (difference.abs() > 0.001 && paidFor.isNotEmpty) {
+        paidFor[0] = PaidFor(
+          userId: paidFor[0].userId,
+          amount: paidFor[0].amount + difference,
+        );
+      }
       
       splitType = 'EQUAL';
     } else {
