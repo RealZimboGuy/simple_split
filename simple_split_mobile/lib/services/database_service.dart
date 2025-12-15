@@ -364,6 +364,17 @@ class DatabaseService {
     // delete related records in user_groups and events tables
   }
 
+  // Reset the synced flag to 0 for all events in a group
+  Future<void> resetSyncedForGroup(String groupId) async {
+    final db = await database;
+    await db.update(
+      'events',
+      {'synced': 0},
+      where: 'group_id = ?',
+      whereArgs: [groupId],
+    );
+  }
+
   // Delete database (useful for testing or resetting)
   Future<void> deleteDatabase() async {
     String path = join(await getDatabasesPath(), 'simple_split.db');

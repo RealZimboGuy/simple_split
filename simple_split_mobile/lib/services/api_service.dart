@@ -134,25 +134,22 @@ Future<User> getUser(String id) async {
 
   // Event API calls
   Future<Event> createEvent(Event event) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/events/create'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(event.toJson()),
-      );
+    final response = await http.post(
+      Uri.parse('$baseUrl/events/create'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(event.toJson()),
+    );
 
-      if (response.statusCode == 200) {
-        final eventData = json.decode(response.body);
-        return Event.fromJson(eventData);
-      } else {
-        throw Exception('Failed to create event: ${response.statusCode}');
-      }
-    } catch (e) {
-      // For offline mode, just return the original event
-      // This will be synced later
-      return event;
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return Event.fromJson(json.decode(response.body));
     }
+
+    // Anything else is a failure
+    throw Exception(
+      'Failed to create event: ${response.statusCode} ${response.body}',
+    );
   }
+
 
   Future<List<Event>> getEventsByGroup(String groupId, {String? afterId}) async {
     try {
