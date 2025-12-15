@@ -26,57 +26,39 @@ func NewEventRepository(db *util.Database) *EventRepository {
 // Create adds a new event to the database
 func (r *EventRepository) Create(ctx context.Context, event *domain.Event) error {
 	query := `
-		INSERT INTO events (event_id, linked_event_id,group_id, user_id, event_type, payload)
+		INSERT INTO events (event_id, linked_event_id, group_id, user_id, event_type, payload)
 		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING created_at
+		ON CONFLICT (event_id) DO NOTHING
 	`
 
-	// Generate a new UUID if not provided
-	if event.EventID == "" {
-		// In a real implementation, you'd use a UUID library
-		// For now, we'll assume the database will generate it via DEFAULT uuidv7()
-		query = `
-			INSERT INTO events (group_id, user_id, event_type, payload)
-			VALUES ($1, $2, $3, $4)
-			RETURNING event_id, created_at
-		`
-		err := r.DB.DB.QueryRowContext(
-			ctx,
-			query,
-			event.GroupID,
-			event.UserID,
-			string(event.EventType),
-			event.Payload,
-		).Scan(&event.EventID, &event.CreatedAt)
-
-		if err != nil {
-			slog.Error("Error in creating Event", "error", err)
-			return fmt.Errorf("failed to create event: %w", err)
-		}
+	var linkedEventID interface{}
+	if event.LinkedEventID == "" {
+		linkedEventID = nil
 	} else {
-		var linkedEventID interface{}
-		// If LinkedEventID is empty, set to nil for SQL NULL
-		if event.LinkedEventID == "" {
-			linkedEventID = nil
-		} else {
-			linkedEventID = event.LinkedEventID
-		}
+		linkedEventID = event.LinkedEventID
+	}
 
-		err := r.DB.DB.QueryRowContext(
-			ctx,
-			query,
-			event.EventID,
-			linkedEventID,
-			event.GroupID,
-			event.UserID,
-			string(event.EventType),
-			event.Payload,
-		).Scan(&event.CreatedAt)
+	result, err := r.DB.DB.ExecContext(
+		ctx,
+		query,
+		event.EventID,
+		linkedEventID,
+		event.GroupID,
+		event.UserID,
+		string(event.EventType),
+		event.Payload,
+	)
+	if err != nil {
+		slog.Error("Error creating Event", "error", err)
+		return fmt.Errorf("failed to create event: %w", err)
+	}
 
-		if err != nil {
-			slog.Error("Error in creating Event", "error", err)
-			return fmt.Errorf("failed to create event: %w", err)
-		}
+	// Optional: detect duplicate insert (no-op)
+	rowsAffected, err := result.RowsAffected()
+	if err == nil && rowsAffected == 0 {
+		// event already existed — not an error
+		slog.Info("Event already existed", "eventID", event.EventID)
+		return fmt.Errorf("event already existed: %w", err)
 	}
 
 	return nil

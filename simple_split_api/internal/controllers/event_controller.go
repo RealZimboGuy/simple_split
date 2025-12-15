@@ -94,7 +94,7 @@ func (c *EventController) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	//if the event exists then return it as is already
 	existing, err := c.EventRepo.GetByID(r.Context(), reqBody.EventID)
-	if err == nil {
+	if existing != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(existing)

@@ -44,9 +44,7 @@ class SyncService {
     for (final event in events) {
       try {
         // Try to send event to server
-        final syncedEvent = await _apiService.createEvent(event);
-        
-        // Mark event as synced
+        await _apiService.createEvent(event);
         await _dbService.markEventAsSynced(event.eventId);
       } catch (e) {
         // If sync fails, leave event as unsynced for next attempt

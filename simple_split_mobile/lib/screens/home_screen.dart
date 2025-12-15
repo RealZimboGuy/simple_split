@@ -38,6 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isSyncing = false;
   final uuid = Uuid();
   String? _selectedCurrency;
+  // Counter for tracking consecutive clicks on Expenses text
+  int _expensesClickCount = 0;
+  // Timestamp for tracking click timing
+  DateTime? _lastClickTime;
 
   // Show confirmation dialog before deleting an expense
   void _showDeleteConfirmation(Event event) {
@@ -436,6 +440,65 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
   
+  // Handle consecutive clicks on Expenses text (hidden feature)
+  void _handleExpensesTextClick() {
+    final now = DateTime.now();
+    
+    // If the last click was more than 2 seconds ago, reset the counter
+    if (_lastClickTime != null && now.difference(_lastClickTime!).inSeconds > 2) {
+      _expensesClickCount = 0;
+    }
+    
+    // Update last click time and increment counter
+    _lastClickTime = now;
+    _expensesClickCount++;
+    
+    // Check if we've reached 5 consecutive clicks
+    if (_expensesClickCount == 5) {
+      _showResetExpensesDialog();
+      _expensesClickCount = 0; // Reset counter after triggering dialog
+    }
+  }
+  
+  // Show dialog for resetting expenses sync status
+  void _showResetExpensesDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hidden Feature Activated'),
+        content: const Text('Resetting expenses'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              _resetExpensesSyncStatus();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Reset sync status for all events in the current group
+  Future<void> _resetExpensesSyncStatus() async {
+    try {
+      await _dbService.resetSyncedForGroup(_currentGroup.groupId);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Expenses sync status has been reset')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error resetting expenses: $e')),
+        );
+      }
+    }
+  }
+  
   void _showLeaveGroupConfirmation() {
     showDialog(
       context: context,
@@ -699,9 +762,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Expenses',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    GestureDetector(
+                      onTap: _handleExpensesTextClick,
+                      child: const Text(
+                        'Expenses',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
                     ),
                     if (projection.currencies.isNotEmpty)
                       DropdownButton<String>(
