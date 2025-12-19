@@ -1,9 +1,10 @@
 # justfile
 
-VERSION := "1.2.2+5"
+VERSION := "1.3.0+8"
 
 aab:
   just update-version
+  cp .env.prod .env
   flutter clean
   flutter build appbundle --release
 
