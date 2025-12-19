@@ -169,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const Text(': '),
                       Text(
-                        '$currency ${settlement.amount.toStringAsFixed(2)}',
+                        '$currency ${NumberFormat('#,##0.00').format(settlement.amount)}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -991,7 +991,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         Text(
-                          amount.abs().toStringAsFixed(2),
+                          NumberFormat('#,##0.00').format(amount.abs()),
                           style: TextStyle(
                             color: isPositive 
                                 ? Theme.of(context).colorScheme.tertiary
@@ -1082,7 +1082,7 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (e) {
         user = null;
       }
-      return '${user?.name ?? 'Unknown'} (${expense.currency} ${payment.amount.toStringAsFixed(2)})';
+      return '${user?.name ?? 'Unknown'} (${expense.currency} ${NumberFormat('#,##0.00').format(payment.amount)})';
     }).join(', ');
     
     String recipientsText = expense.paidFor.map((share) {
@@ -1092,7 +1092,7 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (e) {
         user = null;
       }
-      return '${user?.name ?? 'Unknown'} (${share.amount.toStringAsFixed(2)})';
+      return '${user?.name ?? 'Unknown'} (${NumberFormat('#,##0.00').format(share.amount)})';
     }).join(', ');
     
     return Card(
@@ -1153,7 +1153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     text: 'Total: ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  TextSpan(text: '${expense.currency} ${expense.total.toStringAsFixed(2)}'),
+                  TextSpan(text: '${expense.currency} ${NumberFormat('#,##0.00').format(expense.total)}'),
                 ],
               ),
             ),
