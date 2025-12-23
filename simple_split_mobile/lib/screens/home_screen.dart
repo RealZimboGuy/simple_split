@@ -15,6 +15,7 @@ import '../services/sync_service.dart';
 import 'group_selection_screen.dart';
 import 'add_expense_screen.dart';
 import 'add_currency_screen.dart';
+import 'anonymous_user_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
@@ -441,6 +442,24 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
   
+  void _navigateToCreateAnonymousUserScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AnonymousUserScreen(
+          groupId: _currentGroup.groupId,
+        ),
+      ),
+    ).then((_) {
+      // Refresh the screen after returning from the anonymous user screen
+      setState(() {});
+        
+      // Then sync in background without blocking UI
+      Future.microtask(() {
+        _syncEventsInBackground();
+      });
+    });
+  }
+  
   // Handle consecutive clicks on Expenses text (hidden feature)
   void _handleExpensesTextClick() {
     final now = DateTime.now();
@@ -580,6 +599,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 _shareGroupId();
               } else if (value == 'leave_group') {
                 _showLeaveGroupConfirmation();
+              } else if (value == 'create_anonymous_user') {
+                _navigateToCreateAnonymousUserScreen();
               }
             },
             itemBuilder: (BuildContext context) => [
@@ -590,6 +611,10 @@ class _HomeScreenState extends State<HomeScreen> {
               const PopupMenuItem<String>(
                 value: 'copy_group_id',
                 child: Text('Share group id'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'create_anonymous_user',
+                child: Text('Create Anonymous User'),
               ),
               const PopupMenuItem<String>(
                 value: 'leave_group',
