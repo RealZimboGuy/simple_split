@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:simple_split_mobile/services/projection_service.dart';
 import 'package:simple_split_mobile/models/events/Expense.dart';
 import 'package:uuid/uuid.dart';
@@ -427,15 +428,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
   
-  void _copyGroupId() {
-    // Text to copy with the message and group ID
-    final String textToCopy = "Please join my Simple Split group, the Id to join is: ${_currentGroup.groupId}";
-    
-    // Copy to clipboard
-    Clipboard.setData(ClipboardData(text: textToCopy)).then((_) {
+  void _shareGroupId() {
+    // Text to share with the message and group ID
+    final String textToShare = "Please join my Simple Split group, the Id to join is: ${_currentGroup.groupId}";
+  
+    // Share with other apps
+    Share.share(textToShare).then((_) {
       // Show a confirmation message to the user
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Group ID copied to clipboard')),
+        const SnackBar(content: Text('Group ID shared')),
       );
     });
   }
@@ -576,7 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (value == 'add_currency') {
                 _navigateToAddCurrencyScreen();
               } else if (value == 'copy_group_id') {
-                _copyGroupId();
+                _shareGroupId();
               } else if (value == 'leave_group') {
                 _showLeaveGroupConfirmation();
               }
@@ -588,7 +589,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const PopupMenuItem<String>(
                 value: 'copy_group_id',
-                child: Text('Copy Group ID'),
+                child: Text('Share group id'),
               ),
               const PopupMenuItem<String>(
                 value: 'leave_group',
