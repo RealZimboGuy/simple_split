@@ -57,4 +57,22 @@ class User {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  @override
+  String toString() {
+    return 'User{userId: $userId, name: $name, createdAt: $createdAt}';
+  }
+  
+  // Override == operator to compare users by their userId
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is User && other.userId == userId;
+  }
+
+  // Override hashCode to match == operator
+  @override
+  int get hashCode => userId.hashCode;
 }
+
+

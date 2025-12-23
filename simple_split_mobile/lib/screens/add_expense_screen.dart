@@ -113,7 +113,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> with SingleTickerPr
       final projection = await _projectionService.getGroupProjection(widget.group.groupId);
       
       setState(() {
-        _groupUsers = projection.users;
+        // Create a map to deduplicate users based on userId
+        final Map<String, User> uniqueUsers = {};
+        for (var user in projection.users) {
+          uniqueUsers[user.userId] = user;
+        }
+        
+        // Convert map values back to list
+        _groupUsers = uniqueUsers.values.toList();
+        
+        //log the users
+        // debugPrint("GROUP USERS");
+        // for(var u in _groupUsers ){
+        //   debugPrint(u.toString());
+        // }
+
         // Initialize the current user as the payer
         _selectedPayingUserId = widget.currentUser.userId;
         
@@ -497,114 +511,114 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> with SingleTickerPr
                               controller: _tabController,
                               children: [
                                 // Split Among Tab (Equal Split)
-                              SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Select users to split equally:',
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ...List.generate(_groupUsers.length, (index) {
-                                      final user = _groupUsers[index];
-                                      return CheckboxListTile(
-                                        title: Text(user.name),
-                                        value: _selectedUsers[user.userId] ?? false,
-                                        onChanged: (bool? value) {
-                                          setState(() {
-                                            _selectedUsers[user.userId] = value!;
-                                          });
-                                        },
-                                      );
-                                    }),
-                                  ],
+                                SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Select users to split equally:',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      ...List.generate(_groupUsers.length, (index) {
+                                        final user = _groupUsers[index];
+                                        return CheckboxListTile(
+                                          title: Text(user.name),
+                                          value: _selectedUsers[user.userId] ?? false,
+                                          onChanged: (bool? value) {
+                                            setState(() {
+                                              _selectedUsers[user.userId] = value!;
+                                            });
+                                          },
+                                        );
+                                      }),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              
-                              // Custom Split Tab
-                              SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Enter custom amounts:',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                          decoration: BoxDecoration(
-                                            color: _remainingAmount.abs() < 0.01 
-                                                ? Theme.of(context).colorScheme.tertiaryContainer 
-                                                : Theme.of(context).colorScheme.errorContainer,
-                                            borderRadius: BorderRadius.circular(8),
+                                
+                                // Custom Split Tab
+                                SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'Enter custom amounts:',
+                                            style: TextStyle(fontSize: 14),
                                           ),
-                                          child: Text(
-                                            'Amount remaining: ${_currency} ${_remainingAmount.toStringAsFixed(2)}',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: _remainingAmount.abs() < 0.01
-                                                  ? Theme.of(context).colorScheme.onTertiaryContainer
-                                                  : Theme.of(context).colorScheme.onErrorContainer,
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                            decoration: BoxDecoration(
+                                              color: _remainingAmount.abs() < 0.01 
+                                                  ? Theme.of(context).colorScheme.tertiaryContainer 
+                                                  : Theme.of(context).colorScheme.errorContainer,
+                                              borderRadius: BorderRadius.circular(8),
                                             ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ...List.generate(_groupUsers.length, (index) {
-                                      final user = _groupUsers[index];
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              flex: 3,
-                                              child: Text(
-                                                user.name,
-                                                style: const TextStyle(fontSize: 16),
+                                            child: Text(
+                                              'Amount remaining: ${_currency} ${_remainingAmount.toStringAsFixed(2)}',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: _remainingAmount.abs() < 0.01
+                                                    ? Theme.of(context).colorScheme.onTertiaryContainer
+                                                    : Theme.of(context).colorScheme.onErrorContainer,
                                               ),
                                             ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              flex: 2,
-                                              child: TextField(
-                                                controller: _customAmountControllers[user.userId],
-                                                decoration: InputDecoration(
-                                                  hintText: '0.00',
-                                                  prefixText: '$_currency ',
-                                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                                  border: OutlineInputBorder(
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    borderSide: BorderSide(color: Colors.grey.shade300),
-                                                  ),
-                                                  enabledBorder: OutlineInputBorder(
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    borderSide: BorderSide(color: Colors.grey.shade300),
-                                                  ),
-                                                  focusedBorder: OutlineInputBorder(
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-                                                  ),
-                                                  filled: true,
-                                                  fillColor: Theme.of(context).colorScheme.surface,
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      ...List.generate(_groupUsers.length, (index) {
+                                        final user = _groupUsers[index];
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                flex: 3,
+                                                child: Text(
+                                                  user.name,
+                                                  style: const TextStyle(fontSize: 16),
                                                 ),
-                                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                                inputFormatters: [
-                                                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                                                ],
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }),
-                                  ],
-                                ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                flex: 2,
+                                                child: TextField(
+                                                  controller: _customAmountControllers[user.userId],
+                                                  decoration: InputDecoration(
+                                                    hintText: '0.00',
+                                                    prefixText: '$_currency ',
+                                                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                                    border: OutlineInputBorder(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      borderSide: BorderSide(color: Colors.grey.shade300),
+                                                    ),
+                                                    enabledBorder: OutlineInputBorder(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      borderSide: BorderSide(color: Colors.grey.shade300),
+                                                    ),
+                                                    focusedBorder: OutlineInputBorder(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                                                    ),
+                                                    filled: true,
+                                                    fillColor: Theme.of(context).colorScheme.surface,
+                                                  ),
+                                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                  inputFormatters: [
+                                                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),

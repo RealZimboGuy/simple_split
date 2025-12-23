@@ -120,9 +120,9 @@ Future<void> reCalculateGroupProjections(String groupId) async {
       }
     }
 
-    // Copy users into projectionGroup
+    // Copy users into projectionGroup - already deduplicated since we're using a map
     projectionGroup.users.addAll(userMap.values);
-    projectionGroup.currencies.addAll(currencies);
+    projectionGroup.currencies.addAll(currencies.toSet()); // Ensure currencies are unique as well
 
     final projection = Projection(
       settingKey: groupId + Projection.suffixUsers,
