@@ -1,6 +1,6 @@
 # justfile
 
-VERSION := "1.3.0+8"
+VERSION := "1.4.0+9"
 
 aab:
   just update-version
