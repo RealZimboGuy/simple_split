@@ -1,6 +1,6 @@
 # justfile
 
-VERSION := "1.5.0+10"
+VERSION := "1.5.1+11"
 
 aab:
   just update-version
@@ -11,3 +11,5 @@ aab:
 update-version:
   # This replaces the version in pubspec.yaml with the VERSION variable
   sed -i '' 's/^version: .*/version: {{VERSION}}/' pubspec.yaml
+  sed -i '' "s/'Version: [^']*'/'Version: {{VERSION}}'/" lib/screens/home_screen.dart
+

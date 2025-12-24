@@ -512,6 +512,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> with SingleTickerPr
                               children: [
                                 // Split Among Tab (Equal Split)
                                 SingleChildScrollView(
+                                  // Add padding to the bottom to prevent list items from being hidden behind the button
+                                  padding: const EdgeInsets.only(bottom: 60.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -538,6 +540,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> with SingleTickerPr
                                 
                                 // Custom Split Tab
                                 SingleChildScrollView(
+                                  // Add padding to the bottom to prevent list items from being hidden behind the button
+                                  padding: const EdgeInsets.only(bottom: 60.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
