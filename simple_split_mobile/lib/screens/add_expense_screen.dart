@@ -113,7 +113,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> with SingleTickerPr
       final projection = await _projectionService.getGroupProjection(widget.group.groupId);
       
       setState(() {
-        _groupUsers = projection.users;
+        // Create a map to deduplicate users based on userId
+        final Map<String, User> uniqueUsers = {};
+        for (var user in projection.users) {
+          uniqueUsers[user.userId] = user;
+        }
+        
+        // Convert map values back to list
+        _groupUsers = uniqueUsers.values.toList();
+        
+        //log the users
+        // debugPrint("GROUP USERS");
+        // for(var u in _groupUsers ){
+        //   debugPrint(u.toString());
+        // }
+
         // Initialize the current user as the payer
         _selectedPayingUserId = widget.currentUser.userId;
         
@@ -498,6 +512,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> with SingleTickerPr
                               children: [
                                 // Split Among Tab (Equal Split)
                                 SingleChildScrollView(
+                                  // Add padding to the bottom to prevent list items from being hidden behind the button
+                                  padding: const EdgeInsets.only(bottom: 60.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -524,6 +540,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> with SingleTickerPr
                                 
                                 // Custom Split Tab
                                 SingleChildScrollView(
+                                  // Add padding to the bottom to prevent list items from being hidden behind the button
+                                  padding: const EdgeInsets.only(bottom: 60.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [

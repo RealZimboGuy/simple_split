@@ -78,6 +78,16 @@ class SyncService {
     // Save to local DB
     await _dbService.saveUser(user);
 
+    return user;
+  }
+  // Create and store a user locally and on server
+  Future<User> createUserAndSaveDefault(String name) async {
+    // Create user via API
+    final user = await _apiService.createUser(name);
+
+    // Save to local DB
+    await _dbService.saveUser(user);
+
     final setting = Setting(settingKey: Setting.userId, settingValue: user.userId);
     await _dbService.saveSetting(setting);
 

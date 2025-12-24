@@ -39,7 +39,7 @@ class _UsernameScreenState extends State<UsernameScreen> {
       final username = _usernameController.text.trim();
       
       // Create user and get UUID from server (or generate locally if offline)
-      final user = await syncService.createUser(username);
+      final user = await syncService.createUserAndSaveDefault(username);
       
       if (!mounted) return;
       
