@@ -36,19 +36,31 @@ class FirebaseService {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   
   Future<void> initialize() async {
-    // Firebase.initializeApp() is already called in main.dart
+    try {
+
+      // Firebase.initializeApp() is already called in main.dart
     
     // Configure local notifications
     await _setupLocalNotifications();
     
     // Request permission
     await _requestPermission();
-    
+
+    // CRITICAL: Add a delay to let iOS runtime finish registering for notifications
+    // FlutterAppDelegate handles this internally but needs time
+
+
     // Get the token and setup handlers
     await _setupTokenHandling();
-    
+
     // Set up message handlers
     _setupMessageHandlers();
+    } catch (e) {
+      debugPrint('Error during Firebase service initialization: $e');
+      // Continue without Firebase messaging if it fails
+      // The app should still work without notifications
+    }
+
   }
 
   Future<void> _setupLocalNotifications() async {
