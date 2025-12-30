@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.github.realzimboguy.simpleSplitMobile</string>
+	<string>com.github.realzimboguy.simplesplit</string>
 	<key>PROJECT_ID</key>
 	<string>simplesplit-a2b79</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:711369755120:ios:24ed87a88eb04e264af535</string>
+	<string>1:711369755120:ios:f60b312b23afb8a74af535</string>
 </dict>
 </plist>
