@@ -2,30 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:simple_split_mobile/services/projection_service.dart';
 import 'package:simple_split_mobile/models/events/Expense.dart';
+import 'package:simple_split_mobile/services/projection_service.dart';
 import 'package:uuid/uuid.dart';
-import '../models/user.dart';
-import '../models/group.dart';
+
 import '../models/event.dart';
+import '../models/group.dart';
 import '../models/projections/projection_group.dart';
 import '../models/settlement.dart';
+import '../models/user.dart';
 import '../services/database_service.dart';
 import '../services/sync_service.dart';
-import 'group_selection_screen.dart';
-import 'add_expense_screen.dart';
 import 'add_currency_screen.dart';
+import 'add_expense_screen.dart';
 import 'anonymous_user_screen.dart';
+import 'group_selection_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
   final Group initialGroup;
 
-  const HomeScreen({
-    super.key,
-    required this.user,
-    required this.initialGroup,
-  });
+  const HomeScreen({super.key, required this.user, required this.initialGroup});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -40,23 +37,28 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isSyncing = false;
   final uuid = Uuid();
   String? _selectedCurrency;
+
   // Counter for tracking consecutive clicks on Expenses text
   int _expensesClickCount = 0;
+
   // Timestamp for tracking click timing
   DateTime? _lastClickTime;
 
   // Show confirmation dialog before deleting an expense
   void _showDeleteConfirmation(Event event) {
     final expense = Expense.fromJson(event.payload);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Expense?'),
-        content: Text('Are you sure you want to delete "${expense.description}"?'),
+        content: Text(
+          'Are you sure you want to delete "${expense.description}"?',
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(), // Close the dialog
+            onPressed: () => Navigator.of(context).pop(),
+            // Close the dialog
             child: const Text('CANCEL'),
           ),
           TextButton(
@@ -70,12 +72,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   // Log expense deleted event
   void _logExpenseDeletedEvent(Event originalEvent) async {
     try {
       final expense = Expense.fromJson(originalEvent.payload);
-      
+
       // Create a new event for deletion
       final deleteEvent = Event(
         eventId: uuid.v7(),
@@ -86,21 +88,23 @@ class _HomeScreenState extends State<HomeScreen> {
         payload: originalEvent.payload,
         createdAt: DateTime.now().toIso8601String(),
       );
-      
+
       // Save event locally
       await _dbService.saveEvent(deleteEvent, false);
-      
+
       // Recalculate projections immediately
-      await _projectionService.reCalculateGroupProjections(_currentGroup.groupId);
-      
+      await _projectionService.reCalculateGroupProjections(
+        _currentGroup.groupId,
+      );
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Expense deleted successfully')),
         );
-        
+
         // Refresh UI with local data
         setState(() {});
-        
+
         // Trigger background sync
         Future.microtask(() {
           _syncEventsInBackground();
@@ -108,18 +112,22 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
 
   // Show settlement modal
-  void _showSettlementModal(String currency, List<MapEntry<String, double>> positions, ProjectionGroup projection) {
+  void _showSettlementModal(
+    String currency,
+    List<MapEntry<String, double>> positions,
+    ProjectionGroup projection,
+  ) {
     // Calculate optimal settlement plan
     final settlements = _calculateSettlements(positions, projection);
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -151,10 +159,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const Divider(),
               const SizedBox(height: 12),
-              
-              if (settlements.isEmpty)
-                const Text('No settlements needed.'),
-              
+
+              if (settlements.isEmpty) const Text('No settlements needed.'),
+
               ...settlements.map((settlement) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -181,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               }).toList(),
-              
+
               const SizedBox(height: 20),
               const Text(
                 'Note: This is a simplified settlement plan to minimize the number of transactions.',
@@ -198,58 +205,69 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-  
+
   // Settlement calculation algorithm
-  List<Settlement> _calculateSettlements(List<MapEntry<String, double>> positions, ProjectionGroup projection) {
+  List<Settlement> _calculateSettlements(
+    List<MapEntry<String, double>> positions,
+    ProjectionGroup projection,
+  ) {
     List<Settlement> settlements = [];
-    
+
     // Separate users into creditors (positive balance) and debtors (negative balance)
     List<MapEntry<String, double>> creditors = [];
     List<MapEntry<String, double>> debtors = [];
-    
+
     for (var position in positions) {
       if (position.value > 0) {
         creditors.add(position);
       } else if (position.value < 0) {
-        debtors.add(MapEntry(position.key, -position.value)); // Store positive amount for simplicity
+        debtors.add(
+          MapEntry(position.key, -position.value),
+        ); // Store positive amount for simplicity
       }
     }
-    
+
     // Sort both lists by amount (descending)
     creditors.sort((a, b) => b.value.compareTo(a.value));
     debtors.sort((a, b) => b.value.compareTo(a.value));
-    
+
     // Pair debtors with creditors to minimize transactions
     while (creditors.isNotEmpty && debtors.isNotEmpty) {
       var creditor = creditors.first;
       var debtor = debtors.first;
-      
+
       // Find the users in the projection
       User creditorUser;
       User debtorUser;
-      
+
       try {
-        creditorUser = projection.users.firstWhere((u) => u.userId == creditor.key);
+        creditorUser = projection.users.firstWhere(
+          (u) => u.userId == creditor.key,
+        );
       } catch (e) {
-        creditorUser = User(userId: creditor.key, name: "Unknown", createdAt: "");
+        creditorUser = User(
+          userId: creditor.key,
+          name: "Unknown",
+          createdAt: "",
+        );
       }
-      
+
       try {
         debtorUser = projection.users.firstWhere((u) => u.userId == debtor.key);
       } catch (e) {
         debtorUser = User(userId: debtor.key, name: "Unknown", createdAt: "");
       }
-      
+
       // Calculate the transfer amount
-      final amount = creditor.value < debtor.value ? creditor.value : debtor.value;
-      
+      final amount = creditor.value < debtor.value
+          ? creditor.value
+          : debtor.value;
+
       // Create a settlement
-      settlements.add(Settlement(
-        fromUser: debtorUser,
-        toUser: creditorUser,
-        amount: amount,
-      ));
-      
+      settlements.add(
+        Settlement(fromUser: debtorUser, toUser: creditorUser, amount: amount),
+      );
+
       // Update balances
       if (creditor.value > debtor.value) {
         // Creditor still has remaining balance
@@ -265,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
         debtors.removeAt(0);
       }
     }
-    
+
     return settlements;
   }
 
@@ -273,20 +291,20 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _currentGroup = widget.initialGroup;
-    
+
     // Start sync service for periodic syncing
     _syncService.startSync();
-    
+
     // Load user groups immediately
     _loadUserGroups();
-    
+
     // Load data asynchronously to prevent blocking the UI
     Future.microtask(() async {
       await _loadLocalData();
       if (mounted) {
         setState(() {});
       }
-      
+
       // Perform background sync after local data is loaded
       _syncEventsInBackground();
     });
@@ -301,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserGroups() async {
     final groups = await _dbService.getGroups();
-    
+
     if (mounted) {
       setState(() {
         _userGroups = groups;
@@ -313,7 +331,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadLocalData() async {
     try {
       // Recalculate projections based on local data
-      await _projectionService.reCalculateGroupProjections(_currentGroup.groupId);
+      await _projectionService.reCalculateGroupProjections(
+        _currentGroup.groupId,
+      );
       // Note: This is an expensive operation that recalculates all projections
       // We now call this asynchronously to avoid blocking the UI
     } catch (e) {
@@ -329,11 +349,13 @@ class _HomeScreenState extends State<HomeScreen> {
       await _syncService.syncEvents();
       await _syncService.pullEvents(_currentGroup.groupId, null);
 
-      await _projectionService.reCalculateGroupProjections(_currentGroup.groupId);
-      
+      await _projectionService.reCalculateGroupProjections(
+        _currentGroup.groupId,
+      );
+
       // Refresh user groups
       await _loadUserGroups();
-      
+
       // Refresh UI if needed
       if (mounted) {
         setState(() {});
@@ -357,8 +379,10 @@ class _HomeScreenState extends State<HomeScreen> {
       await _syncService.syncEvents();
       await _syncService.pullEvents(_currentGroup.groupId, null);
 
-      await _projectionService.reCalculateGroupProjections(_currentGroup.groupId);
-      
+      await _projectionService.reCalculateGroupProjections(
+        _currentGroup.groupId,
+      );
+
       // Refresh user groups
       await _loadUserGroups();
     } catch (e, stack) {
@@ -368,9 +392,9 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint(stack.toString());
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error syncing: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error syncing: $e')));
       }
     } finally {
       if (mounted) {
@@ -387,10 +411,10 @@ class _HomeScreenState extends State<HomeScreen> {
       // Reset currency filter when changing groups
       _selectedCurrency = null;
     });
-    
+
     // Close drawer immediately
     Navigator.of(context).pop();
-    
+
     // Since we're changing groups, we need to load local data
     // But we'll do it asynchronously to prevent UI lag
     Future.microtask(() async {
@@ -398,88 +422,97 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() {});
       }
-      
+
       // Then sync in background
       _syncEventsInBackground();
     });
   }
-  
+
   void _navigateToAddCurrencyScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AddCurrencyScreen(
-          currentUser: widget.user,
-          group: _currentGroup,
-        ),
-      ),
-    ).then((value) {
-      // Refresh the screen if currency was added
-      if (value == true) {
-        // Projection has already been recalculated
-        // Reset currency filter and trigger UI refresh to show new data
-        setState(() {
-          _selectedCurrency = null;
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) => AddCurrencyScreen(
+              currentUser: widget.user,
+              group: _currentGroup,
+            ),
+          ),
+        )
+        .then((value) {
+          // Refresh the screen if currency was added
+          if (value == true) {
+            // Projection has already been recalculated
+            // Reset currency filter and trigger UI refresh to show new data
+            setState(() {
+              _selectedCurrency = null;
+            });
+
+            // Then sync in background without blocking UI
+            Future.microtask(() {
+              _syncEventsInBackground();
+            });
+          }
         });
-        
-        // Then sync in background without blocking UI
-        Future.microtask(() {
-          _syncEventsInBackground();
-        });
-      }
-    });
   }
-  
+
   void _shareGroupId() {
     // Text to share with the message and group ID
-    final String textToShare = "Please join my Simple Split group, the Id to join is: ${_currentGroup.groupId}";
-  
+    final String textToShare = '''
+Please join my Simple Split group
+
+${_currentGroup.groupId}
+
+(Use this ID to join the group)
+''';
     // Share with other apps
     Share.share(textToShare).then((_) {
       // Show a confirmation message to the user
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Group ID shared')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Group ID shared')));
     });
   }
-  
+
   void _navigateToCreateAnonymousUserScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AnonymousUserScreen(
-          groupId: _currentGroup.groupId,
-        ),
-      ),
-    ).then((_) {
-      // Refresh the screen after returning from the anonymous user screen
-      setState(() {});
-        
-      // Then sync in background without blocking UI
-      Future.microtask(() {
-        _syncEventsInBackground();
-      });
-    });
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) =>
+                AnonymousUserScreen(groupId: _currentGroup.groupId),
+          ),
+        )
+        .then((_) {
+          // Refresh the screen after returning from the anonymous user screen
+          setState(() {});
+
+          // Then sync in background without blocking UI
+          Future.microtask(() {
+            _syncEventsInBackground();
+          });
+        });
   }
-  
+
   // Handle consecutive clicks on Expenses text (hidden feature)
   void _handleExpensesTextClick() {
     final now = DateTime.now();
-    
+
     // If the last click was more than 2 seconds ago, reset the counter
-    if (_lastClickTime != null && now.difference(_lastClickTime!).inSeconds > 2) {
+    if (_lastClickTime != null &&
+        now.difference(_lastClickTime!).inSeconds > 2) {
       _expensesClickCount = 0;
     }
-    
+
     // Update last click time and increment counter
     _lastClickTime = now;
     _expensesClickCount++;
-    
+
     // Check if we've reached 5 consecutive clicks
     if (_expensesClickCount == 5) {
       _showResetExpensesDialog();
       _expensesClickCount = 0; // Reset counter after triggering dialog
     }
   }
-  
+
   // Show dialog for resetting expenses sync status
   void _showResetExpensesDialog() {
     showDialog(
@@ -499,12 +532,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   // Reset sync status for all events in the current group
   Future<void> _resetExpensesSyncStatus() async {
     try {
       await _dbService.resetSyncedForGroup(_currentGroup.groupId);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Expenses sync status has been reset')),
@@ -512,20 +545,22 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error resetting expenses: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error resetting expenses: $e')));
       }
     }
   }
-  
+
   void _showLeaveGroupConfirmation() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Leave Group'),
-          content: const Text('Are you sure you want to leave this group? This will delete the group data from your device.'),
+          content: const Text(
+            'Are you sure you want to leave this group? This will delete the group data from your device.',
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -545,21 +580,23 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-  
+
   void _leaveGroup() async {
     final currentGroupId = _currentGroup.groupId;
-    
+
     // Delete the current group from the database
     await DatabaseService().deleteGroup(currentGroupId);
-    
+
     // Get remaining groups
     final groups = await DatabaseService().getGroups();
-    
+
     if (groups.isEmpty) {
       // No groups left, navigate to group creation screen
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => GroupSelectionScreen(user: widget.user)),
+        MaterialPageRoute(
+          builder: (context) => GroupSelectionScreen(user: widget.user),
+        ),
         (route) => false, // Remove all previous routes
       );
     } else {
@@ -567,13 +604,15 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _currentGroup = groups.first;
       });
-      
+
       // Recalculate projections for the new current group
-      await _projectionService.reCalculateGroupProjections(_currentGroup.groupId);
-      
+      await _projectionService.reCalculateGroupProjections(
+        _currentGroup.groupId,
+      );
+
       // Refresh UI
       setState(() {});
-      
+
       // Show confirmation
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Successfully left the group')),
@@ -626,30 +665,33 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         elevation: 10,
-        highlightElevation: 12,  // when pressed
+        highlightElevation: 12,
+        // when pressed
         focusElevation: 12,
         hoverElevation: 12,
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AddExpenseScreen(
-                currentUser: widget.user,
-                group: _currentGroup,
-              ),
-            ),
-          ).then((value) {
-            // Refresh the screen if expense was added
-            if (value == true) {
-              // Projection has already been recalculated in add_expense_screen.dart
-              // Simply trigger a UI refresh to show new data
-              setState(() {});
-              
-              // Then sync in background without blocking UI
-              Future.microtask(() {
-                _syncEventsInBackground();
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (context) => AddExpenseScreen(
+                    currentUser: widget.user,
+                    group: _currentGroup,
+                  ),
+                ),
+              )
+              .then((value) {
+                // Refresh the screen if expense was added
+                if (value == true) {
+                  // Projection has already been recalculated in add_expense_screen.dart
+                  // Simply trigger a UI refresh to show new data
+                  setState(() {});
+
+                  // Then sync in background without blocking UI
+                  Future.microtask(() {
+                    _syncEventsInBackground();
+                  });
+                }
               });
-            }
-          });
         },
         child: const Icon(Icons.add),
         tooltip: 'Add Expense',
@@ -664,16 +706,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   GestureDetector(
                     onTap: () {
                       // Copy user ID to clipboard
-                      Clipboard.setData(ClipboardData(text: widget.user.userId)).then((_) {
+                      Clipboard.setData(
+                        ClipboardData(text: widget.user.userId),
+                      ).then((_) {
                         // Show confirmation
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('User ID copied to clipboard')),
+                          const SnackBar(
+                            content: Text('User ID copied to clipboard'),
+                          ),
                         );
                       });
                     },
                     child: UserAccountsDrawerHeader(
                       accountName: Text(widget.user.name),
-                      accountEmail: Text('ID: ${widget.user.userId.substring(0, 8)}...'),
+                      accountEmail: Text(
+                        'ID: ${widget.user.userId.substring(0, 8)}...',
+                      ),
                       currentAccountPicture: CircleAvatar(
                         child: Text(widget.user.name[0].toUpperCase()),
                       ),
@@ -683,11 +731,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: const Text('Your Groups'),
                     subtitle: const Text('Switch to a different group'),
                   ),
-                  ..._userGroups.map((group) => ListTile(
-                    title: Text(group.name),
-                    selected: group.groupId == _currentGroup.groupId,
-                    onTap: () => _changeGroup(group),
-                  )),
+                  ..._userGroups.map(
+                    (group) => ListTile(
+                      title: Text(group.name),
+                      selected: group.groupId == _currentGroup.groupId,
+                      onTap: () => _changeGroup(group),
+                    ),
+                  ),
                   const Divider(),
                   ListTile(
                     leading: const Icon(Icons.add),
@@ -695,7 +745,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
-                          builder: (context) => GroupSelectionScreen(user: widget.user),
+                          builder: (context) =>
+                              GroupSelectionScreen(user: widget.user),
                         ),
                       );
                     },
@@ -707,11 +758,8 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                'Version: 1.5.4+14',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                ),
+                'Version: 1.5.6+16',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -733,7 +781,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildGroupsWithDebts(List<Group> groups, ProjectionService projectionService) {
+  Widget buildGroupsWithDebts(
+    List<Group> groups,
+    ProjectionService projectionService,
+  ) {
     return FutureBuilder(
       future: Future.wait([
         projectionService.getGroupProjection(groups[0].groupId),
@@ -746,7 +797,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         final projection = snapshot.data![0] as ProjectionGroup;
         final events = snapshot.data![1] as List<Event>;
-        
+
         // Filter and sort expense events
         // First, get all expense deletion events and create a set of their linked event IDs
         final deletedEventIds = events
@@ -755,16 +806,18 @@ class _HomeScreenState extends State<HomeScreen> {
             .where((id) => id != null) // Filter out null linkedEventIds
             .map((id) => id as String) // Cast to String
             .toSet();
-            
+
         // Filter expense events, excluding those that have been deleted
         final expenseEvents = events
-            .where((event) => 
-                event.eventType == Event.expenseCreated && 
-                !deletedEventIds.contains(event.eventId))
+            .where(
+              (event) =>
+                  event.eventType == Event.expenseCreated &&
+                  !deletedEventIds.contains(event.eventId),
+            )
             .toList();
-            
+
         expenseEvents.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        
+
         return SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -781,7 +834,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: _buildNetPositionsTable(projection),
                 ),
               ),
-              
+
               // Expenses list header with currency filter
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -792,7 +845,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: _handleExpensesTextClick,
                       child: const Text(
                         'Expenses',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     if (projection.currencies.isNotEmpty)
@@ -809,18 +865,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             value: null,
                             child: Text('All currencies'),
                           ),
-                          ...projection.currencies.map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
+                          ...projection.currencies
+                              .map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              })
+                              .toList(),
                         ],
                       ),
                   ],
                 ),
               ),
-              
+
               // Expenses list
               if (expenseEvents.isEmpty)
                 const Padding(
@@ -833,41 +891,39 @@ class _HomeScreenState extends State<HomeScreen> {
                 Builder(
                   builder: (context) {
                     // Filter expenses based on selected currency
-                    final filteredExpenses = expenseEvents
-                        .where((event) {
-                          // If no currency is selected, show all expenses
-                          if (_selectedCurrency == null) return true;
-                          
-                          // Filter expenses by the selected currency
-                          final expense = Expense.fromJson(event.payload);
-                          return expense.currency == _selectedCurrency;
-                        })
-                        .toList();
-                        
+                    final filteredExpenses = expenseEvents.where((event) {
+                      // If no currency is selected, show all expenses
+                      if (_selectedCurrency == null) return true;
+
+                      // Filter expenses by the selected currency
+                      final expense = Expense.fromJson(event.payload);
+                      return expense.currency == _selectedCurrency;
+                    }).toList();
+
                     // Check if we have any expenses after filtering
                     if (filteredExpenses.isEmpty && _selectedCurrency != null) {
                       return Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Center(
-                          child: Text('No expenses found for ${_selectedCurrency} currency.'),
+                          child: Text(
+                            'No expenses found for ${_selectedCurrency} currency.',
+                          ),
                         ),
                       );
                     }
-                    
+
                     // Display the filtered expenses
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: Column(
-                        children: filteredExpenses
-                            .map((event) {
-                              return _buildExpenseCard(event, projection);
-                            })
-                            .toList(),
+                        children: filteredExpenses.map((event) {
+                          return _buildExpenseCard(event, projection);
+                        }).toList(),
                       ),
                     );
                   },
                 ),
-              
+
               // Add some padding at the bottom to ensure the FAB doesn't obscure content
               const SizedBox(height: 80),
             ],
@@ -876,32 +932,32 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-  
+
   List<Widget> _buildNetPositionsTable(ProjectionGroup projection) {
     // Get net positions map
     final netPositions = projection.calculateNetPositions();
-    
+
     // Group positions by currency
     Map<String, List<MapEntry<String, double>>> positionsByCurrency = {};
-    
+
     for (var entry in netPositions.entries) {
       final parts = entry.key.split('->');
       if (parts.length < 2) continue;
-      
+
       final userId = parts[0];
       final currency = parts[1];
       final amount = entry.value;
-      
+
       // Skip very small amounts
       if (amount.abs() < 0.01) continue;
-      
+
       if (!positionsByCurrency.containsKey(currency)) {
         positionsByCurrency[currency] = [];
       }
-      
+
       positionsByCurrency[currency]!.add(MapEntry(userId, amount));
     }
-    
+
     if (positionsByCurrency.isEmpty) {
       return [
         Padding(
@@ -914,10 +970,10 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.grey.shade600,
             ),
           ),
-        )
+        ),
       ];
     }
-    
+
     // Create a table for more space-efficient display
     return [
       Padding(
@@ -925,7 +981,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Table(
           columnWidths: const {
             0: IntrinsicColumnWidth(), // Currency column
-            1: FlexColumnWidth(3),     // Details column (takes more space)
+            1: FlexColumnWidth(3), // Details column (takes more space)
             2: IntrinsicColumnWidth(), // Settle button column
           },
           border: TableBorder.all(
@@ -982,13 +1038,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ...positionsByCurrency.entries.map((currencyEntry) {
               final currency = currencyEntry.key;
               final positions = currencyEntry.value;
-              
+
               // Build the positions text for this currency
               List<Widget> positionWidgets = [];
               for (var position in positions) {
                 final userId = position.key;
                 final amount = position.value;
-                
+
                 // Try to find user in the projection
                 User? user;
                 try {
@@ -996,9 +1052,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 } catch (e) {
                   user = User(userId: userId, name: "Unknown", createdAt: "");
                 }
-                
+
                 final isPositive = amount > 0;
-                
+
                 positionWidgets.add(
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
@@ -1006,20 +1062,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           '${user.name} ',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
                         Text(
                           '${isPositive ? 'is owed' : 'owes'} ',
-                          style: const TextStyle(
-                            fontStyle: FontStyle.italic,
-                          ),
+                          style: const TextStyle(fontStyle: FontStyle.italic),
                         ),
                         Text(
                           NumberFormat('#,##0.00').format(amount.abs()),
                           style: TextStyle(
-                            color: isPositive 
+                            color: isPositive
                                 ? Theme.of(context).colorScheme.tertiary
                                 : Theme.of(context).colorScheme.error,
                             fontWeight: FontWeight.bold,
@@ -1030,10 +1082,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               }
-              
+
               return TableRow(
                 decoration: BoxDecoration(
-                  color: positionsByCurrency.entries.toList().indexOf(currencyEntry) % 2 == 0
+                  color:
+                      positionsByCurrency.entries.toList().indexOf(
+                                currencyEntry,
+                              ) %
+                              2 ==
+                          0
                       ? Colors.grey.shade50
                       : Colors.white,
                 ),
@@ -1072,18 +1129,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       border: Border(
-                        left: BorderSide(
-                          color: Colors.grey.shade300,
-                          width: 1,
-                        ),
+                        left: BorderSide(color: Colors.grey.shade300, width: 1),
                       ),
                     ),
                     child: ElevatedButton(
-                      onPressed: () => _showSettlementModal(currency, positions, projection),
+                      onPressed: () =>
+                          _showSettlementModal(currency, positions, projection),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                        foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.secondaryContainer,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onSecondaryContainer,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 4.0,
+                        ),
                         minimumSize: const Size(60, 30),
                       ),
                       child: const Text('Settle'),
@@ -1100,27 +1162,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildExpenseCard(Event event, ProjectionGroup projection) {
     final expense = Expense.fromJson(event.payload);
-    
-    String payersText = expense.paidBy.map((payment) {
-      User? user;
-      try {
-        user = projection.users.firstWhere((u) => u.userId == payment.userId);
-      } catch (e) {
-        user = null;
-      }
-      return '${user?.name ?? 'Unknown'} (${expense.currency} ${NumberFormat('#,##0.00').format(payment.amount)})';
-    }).join(', ');
-    
-    String recipientsText = expense.paidFor.map((share) {
-      User? user;
-      try {
-        user = projection.users.firstWhere((u) => u.userId == share.userId);
-      } catch (e) {
-        user = null;
-      }
-      return '${user?.name ?? 'Unknown'} (${NumberFormat('#,##0.00').format(share.amount)})';
-    }).join(', ');
-    
+
+    String payersText = expense.paidBy
+        .map((payment) {
+          User? user;
+          try {
+            user = projection.users.firstWhere(
+              (u) => u.userId == payment.userId,
+            );
+          } catch (e) {
+            user = null;
+          }
+          return '${user?.name ?? 'Unknown'} (${expense.currency} ${NumberFormat('#,##0.00').format(payment.amount)})';
+        })
+        .join(', ');
+
+    String recipientsText = expense.paidFor
+        .map((share) {
+          User? user;
+          try {
+            user = projection.users.firstWhere((u) => u.userId == share.userId);
+          } catch (e) {
+            user = null;
+          }
+          return '${user?.name ?? 'Unknown'} (${NumberFormat('#,##0.00').format(share.amount)})';
+        })
+        .join(', ');
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: ListTile(
@@ -1164,7 +1232,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     text: projection.users
                         .firstWhere(
                           (u) => u.userId == event.userId,
-                          orElse: () => User(userId: event.userId, name: 'Unknown', createdAt: ''),
+                          orElse: () => User(
+                            userId: event.userId,
+                            name: 'Unknown',
+                            createdAt: '',
+                          ),
                         )
                         .name,
                   ),
@@ -1179,7 +1251,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     text: 'Total: ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  TextSpan(text: '${expense.currency} ${NumberFormat('#,##0.00').format(expense.total)}'),
+                  TextSpan(
+                    text:
+                        '${expense.currency} ${NumberFormat('#,##0.00').format(expense.total)}',
+                  ),
                 ],
               ),
             ),
@@ -1191,7 +1266,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     text: 'Date: ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  TextSpan(text: DateFormat('MMM d, yyyy HH:mm').format(expense.dateTime)),
+                  TextSpan(
+                    text: DateFormat(
+                      'MMM d, yyyy HH:mm',
+                    ).format(expense.dateTime),
+                  ),
                 ],
               ),
             ),
