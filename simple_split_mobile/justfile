@@ -1,12 +1,17 @@
 # justfile
 
-VERSION := "1.5.1+11"
+VERSION := "1.5.8+18"
 
 aab:
   just update-version
   cp .env.prod .env
   flutter clean
   flutter build appbundle --release
+
+ipa:
+  just update-version
+  cd ios && flutter clean
+  cd ios && flutter build ipa
 
 update-version:
   # This replaces the version in pubspec.yaml with the VERSION variable

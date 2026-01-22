@@ -26,10 +26,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -59,4 +56,14 @@ class DefaultFirebaseOptions {
     projectId: 'simplesplit-a2b79',
     storageBucket: 'simplesplit-a2b79.firebasestorage.app',
   );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyA4MscGWfrT0vv5bISzuO0qbL0WEhwcO78',
+    appId: '1:711369755120:ios:f60b312b23afb8a74af535',
+    messagingSenderId: '711369755120',
+    projectId: 'simplesplit-a2b79',
+    storageBucket: 'simplesplit-a2b79.firebasestorage.app',
+    iosBundleId: 'com.github.realzimboguy.simplesplit',
+  );
+
 }
