@@ -176,6 +176,17 @@ class SyncService {
   // Join a group and create an event for it
   Future<Group> joinGroup(String groupId, String userId, String userName) async {
 
+    //group id may be entered as a non dash formatted uuid v7 ie
+    //019ac0aa34497232be091171f48c163d
+    
+    //019ac0aa-3449-7232-be09-1171f48c163d
+    
+    //update the group id to include the correct dashes
+    if (groupId.length == 32 && !groupId.contains('-')) {
+      // Format: 8-4-4-4-12 characters
+      groupId = '${groupId.substring(0, 8)}-${groupId.substring(8, 12)}-${groupId.substring(12, 16)}-${groupId.substring(16, 20)}-${groupId.substring(20)}';
+    }
+
     //ensure that the group is valid on the server or return error
     var group = await _apiService.getGroup(groupId);
     if (group.groupId.isEmpty) {

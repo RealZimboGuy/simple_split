@@ -456,13 +456,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _shareGroupId() {
-    // Text to share with the message and group ID
+    // Format the group ID without dashes
+    final String formattedGroupId = _currentGroup.groupId;
+    
+    // Text to share with the message and group ID (without dashes)
     final String textToShare = '''
-Please join my Simple Split group
-
-${_currentGroup.groupId}
-
-(Use this ID to join the group)
+$formattedGroupId
 ''';
     // Share with other apps
     Share.share(textToShare).then((_) {
@@ -758,7 +757,7 @@ ${_currentGroup.groupId}
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                'Version: 1.5.6+16',
+                'Version: 1.5.8+18',
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                 textAlign: TextAlign.center,
               ),
